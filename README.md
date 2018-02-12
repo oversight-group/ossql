@@ -5,6 +5,7 @@ The library was developed by Amit (Amit_B) Barami and Dan (Agresiv) Elimelech in
 The idea was to make it very simple to use and at the same time useful.
 We later discovered more modern methods to do the same idea, such as Entity Framework.
 This class was however a great practicing opportunity for us, and we still is it in some of our projects!
+Full documentation can be found as standart XML documentation along with the release, as well as in the repository wiki. Note that the wiki is auto-generated using [MarkdownGenerator](https://github.com/neuecc/MarkdownGenerator).
 
 # Advantages & Features
 * Easy and simple to use
