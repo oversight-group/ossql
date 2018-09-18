@@ -1,6 +1,0 @@
-C:\Users\Amit\Desktop\עמית\פרוייקטים\C#\OsSql\OsSql\bin\Debug\OsSql.dll
-C:\Users\Amit\Desktop\עמית\פרוייקטים\C#\OsSql\OsSql\bin\Debug\OsSql.pdb
-C:\Users\Amit\Desktop\עמית\פרוייקטים\C#\OsSql\OsSql\bin\Debug\MySql.Data.dll
-C:\Users\Amit\Desktop\עמית\פרוייקטים\C#\OsSql\OsSql\obj\Debug\OsSql.csprojResolveAssemblyReference.cache
-C:\Users\Amit\Desktop\עמית\פרוייקטים\C#\OsSql\OsSql\obj\Debug\OsSql.dll
-C:\Users\Amit\Desktop\עמית\פרוייקטים\C#\OsSql\OsSql\obj\Debug\OsSql.pdb

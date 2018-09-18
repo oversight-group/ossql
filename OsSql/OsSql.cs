@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Oversight - All rights reserved
+﻿/* Copyright (C) 2017 Oversight - All rights reserved
  *
  * You may use, distribute and modify this code under the terms of the LICENSE file.
  *
@@ -547,14 +547,17 @@ namespace OsSql
         /// <param name="database">The database name.</param>
         /// <param name="uid">The login username.</param>
         /// <param name="passwd">The login password</param>
-        public SQL(string server, string database, string uid, string passwd)
+        /// <param name="port">Port for server connection.</param>
+        public SQL(string server, string database, string uid, string passwd, ushort port = 3306)
         {
             ConnectionDetails = new MySqlConnectionStringBuilder()
             {
                 Server = server,
                 Database = database,
                 UserID = uid,
-                Password = passwd
+                Password = passwd,
+                Port = port,
+                SslMode = MySqlSslMode.None
             };
         }
         /// <summary>
@@ -647,7 +650,8 @@ namespace OsSql
         /// <returns>A list of Dictionary elements based on the data.</returns>
         public List<Dictionary<string, object>> Select(OsSqlTypes.Table table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            return Select(table.ToString(), condition, key, conditionparams);
+            Connection.ChangeDatabase(table.DBName);
+            return Select(table.Name, condition, key, conditionparams);
         }
         /// <summary>
         /// Select statement for SQL based on a new instance of DataTable.
@@ -678,7 +682,8 @@ namespace OsSql
         /// <returns>The new DataTable.</returns>
         public DataTable Read(OsSqlTypes.Table table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            return Read(table.ToString(), condition, key, conditionparams);
+            Connection.ChangeDatabase(table.DBName);
+            return Read(table.Name, condition, key, conditionparams);
         }
         /// <summary>
         /// Select statement for SQL based on an existing instance of DataSet and a new instance of DataTable.
@@ -710,7 +715,8 @@ namespace OsSql
         /// <returns>The new DataTable.</returns>
         public DataTable Read(ref DataSet ds, OsSqlTypes.Table table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            return Read(ref ds, table.ToString(), condition, key, conditionparams);
+            Connection.ChangeDatabase(table.DBName);
+            return Read(ref ds, table.Name, condition, key, conditionparams);
         }
         /// <summary>
         /// Updates the database.
@@ -725,7 +731,7 @@ namespace OsSql
             string execQuery = "UPDATE `" + table + "`" + " SET ";
             for (int i = 0; i < parameters.Length; i++)
                 if (parameters[i].Func)
-                    execQuery += "`" + parameters[i].Key + "`=@" + parameters[i].Key + (i == parameters.Length - 1 ? "" : ", ");
+                    execQuery += "`" + parameters[i].Key + "` = @" + parameters[i].Key + (i == parameters.Length - 1 ? "" : ", ");
             execQuery = execQuery + Condition(condition);
             Query(execQuery, parameters);
         }
@@ -737,7 +743,8 @@ namespace OsSql
         /// <param name="parameters">List of keys and values to update. Only parameters with <c>function</c> set to <c>true</c> will be updated.</param>
         public void Update(OsSqlTypes.Table table, string condition, params OsSqlTypes.Parameter[] parameters)
         {
-            Update(table.ToString(), condition, parameters);
+            Connection.ChangeDatabase(table.DBName);
+            Update(table.Name, condition, parameters);
         }
         /// <summary>
         /// Returns the number of rows based on a condition.
@@ -763,7 +770,8 @@ namespace OsSql
         /// <returns>The count.</returns>
         public int Count(OsSqlTypes.Table table, string condition = "", params OsSqlTypes.Parameter[] conditionparams)
         {
-            return Count(table.ToString(), condition, conditionparams);
+            Connection.ChangeDatabase(table.DBName);
+            return Count(table.Name, condition, conditionparams);
         }
         /// <summary>
         /// Adds a new entry to the table.
@@ -796,7 +804,8 @@ namespace OsSql
         /// <param name="parameters">List of keys and values to insert. Only parameters with <c>function</c> set to <c>true</c> will be inserted.</param>
         public int Insert(OsSqlTypes.Table table, params OsSqlTypes.Parameter[] parameters)
         {
-            return Insert(table.ToString(), parameters);
+            Connection.ChangeDatabase(table.DBName);
+            return Insert(table.Name, parameters);
         }
         /// <summary>
         /// Deletes a row from the table.
@@ -816,53 +825,54 @@ namespace OsSql
         /// <param name="conditionparams">Parameters to pass with the condition.</param>
         public void Delete(OsSqlTypes.Table table, string condition, params OsSqlTypes.Parameter[] conditionparams)
         {
-            Delete(table.ToString(), condition, conditionparams);
+            Connection.ChangeDatabase(table.DBName);
+            Delete(table.Name, condition, conditionparams);
         }
         /// <summary>
         /// Checks if column exists in a table.
         /// </summary>
-        /// <param name="table">Table name.</param>
+        /// <param name="table">Table object.</param>
         /// <param name="column">Column name.</param>
         /// <returns>True if the column exists, false otherwise.</returns>
-        public bool IsColumnExists(string table, string column)
+        public bool IsColumnExists(OsSqlTypes.Table table, string column)
         {
-            MySqlCommand cmd = new MySqlCommand("SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" + ConnectionDetails.Database +
-                "' AND TABLE_NAME = '" + table + "' AND COLUMN_NAME = '" + column + "'", Connection);
+            MySqlCommand cmd = new MySqlCommand("SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" + (string.IsNullOrEmpty(table.DBName) ? ConnectionDetails.Database : table.DBName) +
+                "' AND TABLE_NAME = '" + table.Name + "' AND COLUMN_NAME = '" + column + "'", Connection);
             return cmd.ExecuteScalar() != null;
         }
         /// <summary>
         /// Adds a new column to a table.
         /// </summary>
-        /// <param name="table">Table name.</param>
+        /// <param name="table">Table object.</param>
         /// <param name="type">Column type.</param>
         /// <param name="column">Column name.</param>
         /// <param name="ai">Auto increment.</param>
-        public void AddColumn(string table, OsSqlTypes.ColumnType type, string column, bool ai = false)
+        public void AddColumn(OsSqlTypes.Table table, OsSqlTypes.ColumnType type, string column, bool ai = false)
         {
-            Query("ALTER TABLE " + table + " ADD " + column + " " + Builder.ColTypeSQLTitle(type) + (ai ? " NOT NULL AUTO_INCREMENT" : ""));
+            Connection.ChangeDatabase(table.DBName);
+            Query("ALTER TABLE " + table.Name + " ADD " + column + " " + Builder.ColTypeSQLTitle(type) + (ai ? " NOT NULL AUTO_INCREMENT" : ""));
         }
         /// <summary>
         /// Deletes a column from a table.
         /// </summary>
-        /// <param name="table">Table name.</param>
+        /// <param name="table">Table object.</param>
         /// <param name="column">Column name.</param>
-        public void DropColumn(string table, string column)
+        public void DropColumn(OsSqlTypes.Table table, string column)
         {
-            Query("ALTER TABLE " + table + " DROP " + column);
+            Connection.ChangeDatabase(table.DBName);
+            Query("ALTER TABLE " + table.Name + " DROP " + column);
         }
         /// <summary>
         /// Updates the table columns in database to match the table that defined in the code.
         /// </summary>
         /// <param name="table">Table object.</param>
-        /// <param name="sqlname">SQL table name, use empty string to set the same as the <c>table</c> name.</param>
         /// <param name="delete">Use true to delete any unrelevant columns found while updating. Note that this will delete both the columns and their rows.</param>
-        public void UpdateColumns(OsSqlTypes.Table table, string sqlname = "", bool delete = false)
+        public void UpdateColumns(OsSqlTypes.Table table, bool delete = false)
         {
-            string TName = sqlname.Length == 0 ? table.ToString() : sqlname;
             List<string> TColumns = new List<string>();
             using (MySqlCommand command = Connection.CreateCommand())
             {
-                command.CommandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" + (string.IsNullOrEmpty(table.DBName) ? ConnectionDetails.Database : table.DBName) + "' AND TABLE_NAME = N'" + table.ToString() + "'";
+                command.CommandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" + (string.IsNullOrEmpty(table.DBName) ? ConnectionDetails.Database : table.DBName) + "' AND TABLE_NAME = N'" + table.Name + "'";
                 using (var reader = command.ExecuteReader())
                     while (reader.Read())
                         TColumns.Add(reader.GetString(3));
@@ -872,12 +882,12 @@ namespace OsSql
                 int index = TColumns.IndexOf(c.DbName);
                 if (index != -1)
                     TColumns.RemoveAt(index);
-                if (!IsColumnExists(TName, c.DbName))
-                    AddColumn(TName, c.ColType, c.DbName);
+                if (!IsColumnExists(table, c.DbName))
+                    AddColumn(table, c.ColType, c.DbName);
             }
             if (delete && TColumns.Count > 0)
                 foreach (var d in TColumns)
-                    DropColumn(TName, d);
+                    DropColumn(table, d);
         }
         /// <summary>
         /// Updates the database tables columns to match the tables that defined in a specific structure.
@@ -890,7 +900,7 @@ namespace OsSql
             if (updateTables)
                 Query(Builder.GetCreationQuery(structure));
             foreach (var t in structure.Tables)
-                UpdateColumns(t, t.Name, delete);
+                UpdateColumns(t, delete);
         }
         /// <summary>
         /// Auto-updates database rows.
@@ -1153,7 +1163,7 @@ namespace OsSql
             string createQuery = string.Empty, toEnd = string.Empty;
             foreach (var x in list)
             {
-                createQuery += (createQuery.Length == 0 ? "" : Environment.NewLine) + "CREATE TABLE IF NOT EXISTS " + x.Name + " (";
+                createQuery += (createQuery.Length == 0 ? "" : Environment.NewLine) + "CREATE TABLE IF NOT EXISTS " + x.ToString() + " (";
                 foreach (var i in x.Columns)
                 {
                     createQuery += "`" + i.DbName + "` " + ColTypeSQLTitle(i.ColType) +
@@ -1182,7 +1192,7 @@ namespace OsSql
                 case OsSqlTypes.ColumnType.Element:
                 case OsSqlTypes.ColumnType.Enum:
                 case OsSqlTypes.ColumnType.DateTime:
-                    return "INT";
+                    return "BIGINT";
                 case OsSqlTypes.ColumnType.Object:
                     return "MEDIUMTEXT";
                 default:
@@ -1262,20 +1272,20 @@ namespace OsSql
     internal class Timestamp
     {
         /// <summary>
-        /// Converts a DateTime object to a unix time int value.
+        /// Converts a DateTime object to a unix time long value.
         /// </summary>
         /// <param name="datetime">DateTime object.</param>
-        /// <returns>Returns int value that represents a unix time.</returns>
-        internal static int UnixTimeFromDateTime(DateTime datetime)
+        /// <returns>Returns long value that represents a unix time.</returns>
+        internal static long UnixTimeFromDateTime(DateTime datetime)
         {
-            return (int)Math.Truncate((datetime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
+            return (long)Math.Truncate((datetime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
         }
         /// <summary>
         /// Converts a unix time to a DateTime object.
         /// </summary>
-        /// <param name="unixtime">The unix time int value.</param>
+        /// <param name="unixtime">The unix time long value.</param>
         /// <returns>DateTime object.</returns>
-        internal static DateTime DateTimeFromUnixTime(int unixtime)
+        internal static DateTime DateTimeFromUnixTime(long unixtime)
         {
             return new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixtime).ToLocalTime();
         }
