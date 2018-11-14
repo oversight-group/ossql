@@ -247,6 +247,10 @@ namespace OsSql
             /// </summary>
             Varchar,
             /// <summary>
+            /// Holds a variable length string (can contain letters, numbers, and special characters). The maximum size is specified in parenthesis. Can store up to 255 characters.
+            /// </summary>
+            NVarchar,
+            /// <summary>
             /// Holds a string with a maximum length of 65,535 characters.
             /// </summary>
             Text,
@@ -1099,6 +1103,7 @@ namespace OsSql
                     case OsSqlTypes.ColumnType.TinyText:
                     case OsSqlTypes.ColumnType.Text:
                     case OsSqlTypes.ColumnType.Varchar:
+                    case OsSqlTypes.ColumnType.NVarchar:
                         {
                             success = true;
                             return TextValue(Convert.ToString(content), !save);

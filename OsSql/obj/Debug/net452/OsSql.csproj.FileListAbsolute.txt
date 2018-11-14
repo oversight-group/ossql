@@ -1,0 +1,12 @@
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\bin\Debug\net452\OsSql.dll
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\bin\Debug\net452\OsSql.pdb
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\bin\Debug\net452\Google.Protobuf.dll
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\bin\Debug\net452\MySql.Data.dll
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\bin\Debug\net452\Newtonsoft.Json.dll
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\net452\OsSql.csproj.CoreCompileInputs.cache
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\net452\OsSql.AssemblyInfoInputs.cache
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\net452\OsSql.AssemblyInfo.cs
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\net452\OsSql.csproj.CopyComplete
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\net452\OsSql.dll
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\net452\OsSql.pdb
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\net452\OsSql.csprojAssemblyReference.cache

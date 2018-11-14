@@ -335,6 +335,52 @@
           }
         }
       }
+    },
+    ".NETFramework,Version=v4.5.2": {
+      "Google.Protobuf/3.5.1": {
+        "type": "package",
+        "compile": {
+          "lib/net45/Google.Protobuf.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Google.Protobuf.dll": {}
+        }
+      },
+      "MySql.Data/8.0.12": {
+        "type": "package",
+        "dependencies": {
+          "Google.Protobuf": "3.5.1"
+        },
+        "frameworkAssemblies": [
+          "Microsoft.CSharp",
+          "System",
+          "System.ComponentModel",
+          "System.ComponentModel.DataAnnotations",
+          "System.Configuration",
+          "System.Configuration.Install",
+          "System.Data",
+          "System.Drawing",
+          "System.Drawing.Design",
+          "System.Management",
+          "System.Transactions",
+          "System.Xml"
+        ],
+        "compile": {
+          "lib/net452/MySql.Data.dll": {}
+        },
+        "runtime": {
+          "lib/net452/MySql.Data.dll": {}
+        }
+      },
+      "Newtonsoft.Json/11.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net45/Newtonsoft.Json.dll": {}
+        }
+      }
     }
   },
   "libraries": {
@@ -1057,18 +1103,18 @@
       "Microsoft.NETCore.App >= 2.0.0",
       "MySql.Data >= 8.0.12",
       "Newtonsoft.Json >= 11.0.2"
+    ],
+    ".NETFramework,Version=v4.5.2": [
+      "MySql.Data >= 8.0.12",
+      "Newtonsoft.Json >= 11.0.2"
     ]
   },
   "packageFolders": {
     "C:\\Users\\Amit\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackagesFallback\\": {},
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
-    "restoreSettings": {
-      "hideWarningsAndErrors": true
-    },
     "restore": {
       "projectUniqueName": "C:\\Users\\Amit\\Desktop\\עמית\\פרויקטים\\C#\\OsSql\\OsSql\\OsSql.csproj",
       "projectName": "OsSql",
@@ -1076,16 +1122,16 @@
       "packagesPath": "C:\\Users\\Amit\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\Amit\\Desktop\\עמית\\פרויקטים\\C#\\OsSql\\OsSql\\obj\\",
       "projectStyle": "PackageReference",
+      "crossTargeting": true,
       "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackagesFallback\\",
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
         "C:\\Users\\Amit\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.Fallback.config"
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
+        "net452",
         "netcoreapp2.0"
       ],
       "sources": {
@@ -1094,6 +1140,9 @@
       },
       "frameworks": {
         "netcoreapp2.0": {
+          "projectReferences": {}
+        },
+        "net452": {
           "projectReferences": {}
         }
       },
@@ -1126,6 +1175,18 @@
         ],
         "assetTargetFallback": true,
         "warn": true
+      },
+      "net452": {
+        "dependencies": {
+          "MySql.Data": {
+            "target": "Package",
+            "version": "[8.0.12, )"
+          },
+          "Newtonsoft.Json": {
+            "target": "Package",
+            "version": "[11.0.2, )"
+          }
+        }
       }
     }
   }

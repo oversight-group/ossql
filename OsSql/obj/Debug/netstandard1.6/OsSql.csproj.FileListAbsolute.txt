@@ -1,0 +1,4 @@
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\netstandard1.6\OsSql.csprojAssemblyReference.cache
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\netstandard1.6\OsSql.csproj.CoreCompileInputs.cache
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\netstandard1.6\OsSql.AssemblyInfoInputs.cache
+C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\netstandard1.6\OsSql.AssemblyInfo.cs
