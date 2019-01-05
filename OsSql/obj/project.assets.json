@@ -1116,11 +1116,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Amit\\Desktop\\עמית\\פרויקטים\\C#\\OsSql\\OsSql\\OsSql.csproj",
+      "projectUniqueName": "C:\\Users\\Amit\\Dropbox (Personal)\\עמית\\פרויקטים\\C#\\OsSql\\OsSql\\OsSql.csproj",
       "projectName": "OsSql",
-      "projectPath": "C:\\Users\\Amit\\Desktop\\עמית\\פרויקטים\\C#\\OsSql\\OsSql\\OsSql.csproj",
+      "projectPath": "C:\\Users\\Amit\\Dropbox (Personal)\\עמית\\פרויקטים\\C#\\OsSql\\OsSql\\OsSql.csproj",
       "packagesPath": "C:\\Users\\Amit\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Amit\\Desktop\\עמית\\פרויקטים\\C#\\OsSql\\OsSql\\obj\\",
+      "outputPath": "C:\\Users\\Amit\\Dropbox (Personal)\\עמית\\פרויקטים\\C#\\OsSql\\OsSql\\obj\\",
       "projectStyle": "PackageReference",
       "crossTargeting": true,
       "fallbackFolders": [
