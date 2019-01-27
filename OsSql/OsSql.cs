@@ -444,7 +444,8 @@ namespace OsSql
             /// Adds all of the class properties that are marked with <c>OsSqlSaveAttribute</c> as columns to the table.
             /// </summary>
             /// <param name="classType">Type of the source class.</param>
-            public void AddColumnsByAttributes(Type classType)
+            /// <param name="tolowercase">Lowercase characters.</param>
+            public void AddColumnsByAttributes(Type classType, bool tolowercase = true)
             {
                 var list = classType.GetProperties();
                 OsSqlSaveAttribute[] att;
@@ -452,7 +453,7 @@ namespace OsSql
                 {
                     att = (OsSqlSaveAttribute[])prop.GetCustomAttributes(typeof(OsSqlSaveAttribute));
                     if (att.Length > 0)
-                        AddColumn(att[0].ColType == null ? Builder.ColumnTypeFromObjectType(prop.GetType()) : att[0].ColType.Value, att[0].DbName.Length == 0 ? prop.Name : att[0].DbName, prop.Name, att[0].AutoInc);
+                        AddColumn(att[0].ColType == null ? Builder.ColumnTypeFromObjectType(prop.GetType()) : att[0].ColType.Value, att[0].DbName.Length == 0 ? (tolowercase ? prop.Name.ToLower() : prop.Name) : att[0].DbName, prop.Name, att[0].AutoInc);
                 }
             }
             /// <summary>
