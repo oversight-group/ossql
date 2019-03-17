@@ -10,9 +10,9 @@ C:\Users\Amit\Desktop\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\netcore
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Debug\netcoreapp2.0\OsSql.deps.json
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Debug\netcoreapp2.0\OsSql.dll
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Debug\netcoreapp2.0\OsSql.pdb
-C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\netcoreapp2.0\OsSql.csprojAssemblyReference.cache
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\netcoreapp2.0\OsSql.csproj.CoreCompileInputs.cache
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\netcoreapp2.0\OsSql.AssemblyInfoInputs.cache
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\netcoreapp2.0\OsSql.AssemblyInfo.cs
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\netcoreapp2.0\OsSql.dll
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\netcoreapp2.0\OsSql.pdb
+C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Debug\netcoreapp2.0\OsSql.csprojAssemblyReference.cache

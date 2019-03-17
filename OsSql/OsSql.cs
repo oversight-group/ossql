@@ -444,16 +444,20 @@ namespace OsSql
             /// Adds all of the class properties that are marked with <c>OsSqlSaveAttribute</c> as columns to the table.
             /// </summary>
             /// <param name="classType">Type of the source class.</param>
-            /// <param name="tolowercase">Lowercase characters.</param>
-            public void AddColumnsByAttributes(Type classType, bool tolowercase = true)
+            /// <param name="tolowercase">Lowercase names.</param>
+            /// <param name="inherit"></param>
+            public void AddColumnsByAttributes(Type classType, bool tolowercase = true, bool inherit = false)
             {
                 var list = classType.GetProperties();
                 OsSqlSaveAttribute[] att;
                 foreach (var prop in list)
                 {
-                    att = (OsSqlSaveAttribute[])prop.GetCustomAttributes(typeof(OsSqlSaveAttribute));
+                    att = (OsSqlSaveAttribute[])prop.GetCustomAttributes(typeof(OsSqlSaveAttribute), inherit);
                     if (att.Length > 0)
-                        AddColumn(att[0].ColType == null ? Builder.ColumnTypeFromObjectType(prop.GetType()) : att[0].ColType.Value, att[0].DbName.Length == 0 ? (tolowercase ? prop.Name.ToLower() : prop.Name) : att[0].DbName, prop.Name, att[0].AutoInc);
+                    {
+                        var pn = tolowercase ? prop.Name.ToLower() : prop.Name;
+                        AddColumn(att[0].ColType == null ? Builder.ColumnTypeFromObjectType(prop.GetType()) : att[0].ColType.Value, att[0].DbName.Length == 0 ? pn : att[0].DbName, prop.Name, att[0].AutoInc);
+                    }
                 }
             }
             /// <summary>
@@ -1100,14 +1104,20 @@ namespace OsSql
                             return val;
                         }
                     case OsSqlTypes.ColumnType.LongText:
+                        break;
                     case OsSqlTypes.ColumnType.MediumText:
+                        break;
                     case OsSqlTypes.ColumnType.TinyText:
+                        break;
                     case OsSqlTypes.ColumnType.Text:
+                        break;
                     case OsSqlTypes.ColumnType.Varchar:
+                        break;
                     case OsSqlTypes.ColumnType.NVarchar:
                         {
                             success = true;
-                            return TextValue(Convert.ToString(content), !save);
+                            return Convert.ToString(content);
+                            //return TextValue(Convert.ToString(content), !save);
                         }
                     case OsSqlTypes.ColumnType.Object:
                         {
