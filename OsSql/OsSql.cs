@@ -449,14 +449,15 @@ namespace OsSql
             public void AddColumnsByAttributes(Type classType, bool tolowercase = true, bool inherit = false)
             {
                 var list = classType.GetProperties();
-                OsSqlSaveAttribute[] att;
                 foreach (var prop in list)
                 {
-                    att = (OsSqlSaveAttribute[])prop.GetCustomAttributes(typeof(OsSqlSaveAttribute), inherit);
-                    if (att.Length > 0)
+                    var att = prop.GetCustomAttributes<OsSqlSaveAttribute>(inherit).FirstOrDefault() as OsSqlSaveAttribute;
+                    if (att != null)
                     {
                         var pn = tolowercase ? prop.Name.ToLower() : prop.Name;
-                        AddColumn(att[0].ColType == null ? Builder.ColumnTypeFromObjectType(prop.GetType()) : att[0].ColType.Value, att[0].DbName.Length == 0 ? pn : att[0].DbName, prop.Name, att[0].AutoInc);
+                        var sql = att.DbName.Length == 0 ? pn : att.DbName;
+                        if (!Columns.Any(x => x.CodeName == pn || x.DbName == sql))
+                            AddColumn(att.ColType == null ? Builder.ColumnTypeFromObjectType(prop.GetType()) : att.ColType.Value, sql, pn, att.AutoInc);
                     }
                 }
             }
@@ -629,11 +630,12 @@ namespace OsSql
         public List<Dictionary<string, object>> Select(string table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
             var ret = new List<Dictionary<string, object>>();
-            string query = "SELECT " + key + " FROM `" + table + "`" + Condition(condition);
+            string query = "SELECT " + key + " FROM " + table + Condition(condition);
             using (MySqlCommand cmd = new MySqlCommand(query, Connection))
             {
                 foreach (var p in conditionparams)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
+                OsSqlDebugger.Query(cmd);
                 cmd.Prepare();
                 using (MySqlDataReader rdr = cmd.ExecuteReader())
                 {
@@ -672,7 +674,7 @@ namespace OsSql
         /// <returns>The new DataTable.</returns>
         public DataTable Read(string table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            MySqlCommand cmd = new MySqlCommand("SELECT " + key + " FROM `" + table + "`" + Condition(condition), Connection);
+            MySqlCommand cmd = new MySqlCommand("SELECT " + key + " FROM " + table + Condition(condition), Connection);
             foreach (var p in conditionparams)
                 cmd.Parameters.AddWithValue(p.Key, p.Value);
             cmd.Prepare();
@@ -705,7 +707,7 @@ namespace OsSql
         /// <returns>The new DataTable.</returns>
         public DataTable Read(ref DataSet ds, string table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            MySqlCommand cmd = new MySqlCommand("SELECT " + key + " FROM `" + table + "`" + Condition(condition), Connection);
+            MySqlCommand cmd = new MySqlCommand("SELECT " + key + " FROM " + table + Condition(condition), Connection);
             foreach (var p in conditionparams)
                 cmd.Parameters.AddWithValue(p.Key, p.Value);
             cmd.Prepare();
@@ -737,7 +739,7 @@ namespace OsSql
         {
             if (parameters.Length == 0)
                 OsSqlDebugger.Error("This function requires parameters.");
-            string execQuery = "UPDATE `" + table + "`" + " SET ";
+            string execQuery = "UPDATE " + table + " SET ";
             for (int i = 0; i < parameters.Length; i++)
                 if (parameters[i].Func)
                     execQuery += "`" + parameters[i].Key + "` = @" + parameters[i].Key + (i == parameters.Length - 1 ? "" : ", ");
@@ -764,7 +766,7 @@ namespace OsSql
         /// <returns>The count.</returns>
         public int Count(string table, string condition = "", params OsSqlTypes.Parameter[] conditionparams)
         {
-            MySqlCommand cmd = new MySqlCommand("SELECT COUNT(*) FROM `" + table + "`" + Condition(condition), Connection);
+            MySqlCommand cmd = new MySqlCommand("SELECT COUNT(*) FROM " + table + Condition(condition), Connection);
             foreach (var p in conditionparams)
                 cmd.Parameters.AddWithValue(p.Key, p.Value);
             cmd.Prepare();
@@ -791,7 +793,7 @@ namespace OsSql
         {
             if (parameters.Length == 0)
                 OsSqlDebugger.Error("This function requires parameters.");
-            string execQuery = "INSERT INTO `" + table + "` (";
+            string execQuery = "INSERT INTO " + table + " (";
             for (int i = 0; i < parameters.Length; i++)
                 if (parameters[i].Func)
                     execQuery += "`" + parameters[i].Key + "`" + (i == parameters.Length - 1 ? "" : ",");
@@ -804,6 +806,7 @@ namespace OsSql
             foreach (var p in parameters)
                 cmd.Parameters.AddWithValue(p.Key, p.Value);
             cmd.Prepare();
+            OsSqlDebugger.Query(cmd);
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
         /// <summary>
@@ -824,7 +827,7 @@ namespace OsSql
         /// <param name="conditionparams">Parameters to pass with the condition.</param>
         public void Delete(string table, string condition, params OsSqlTypes.Parameter[] conditionparams)
         {
-            Query("DELETE FROM `" + table + "`" + Condition(condition), conditionparams);
+            Query("DELETE FROM " + table + Condition(condition), conditionparams);
         }
         /// <summary>
         /// Deletes a row from the table.
@@ -955,7 +958,7 @@ namespace OsSql
         /// <param name="conditionparams">Parameters to pass with the condition.</param>
         public List<Dictionary<string, object>> AutoSelect(OsSqlTypes.Table table, string condition, string name = "", params OsSqlTypes.Parameter[] conditionparams)
         {
-            return Select(name == string.Empty ? table.ToString() : name, condition, string.Join(",", table.Columns.Select(x => x.DbName)), conditionparams);
+            return Select(name == string.Empty ? table.ToString() : name, condition, string.Join(",", table.Columns.Select(x => "`" + x.DbName + "`")), conditionparams);
         }
         /// <summary>
         /// Auto-reads from the database based on the synchronized table parameter, then loads all of the data to a new constructed instance of the specified class type.
@@ -971,7 +974,7 @@ namespace OsSql
         public T AutoLoad<T>(OsSqlTypes.Table table, string condition, out Dictionary<OsSqlTypes.Table.Column, object> data, string name = "", params OsSqlTypes.Parameter[] conditionparams)
         {
             data = new Dictionary<OsSqlTypes.Table.Column, object>();
-            var selectedData = Read(name == string.Empty ? table.ToString() : name, condition, string.Join(",", table.Columns.Select(x => x.DbName)), conditionparams);
+            var selectedData = Read(name == string.Empty ? table.ToString() : name, condition, string.Join(",", table.Columns.Select(x => "`" + x.DbName + "`")), conditionparams);
             object loadedData = null;
             Type instanceType = typeof(T);
             T instance = (T)Activator.CreateInstance(instanceType);

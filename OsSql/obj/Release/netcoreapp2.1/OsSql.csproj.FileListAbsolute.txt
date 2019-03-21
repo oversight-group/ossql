@@ -1,0 +1,9 @@
+C:\Users\magshimim\Documents\personal\Work\ossql\OsSql\bin\Release\netcoreapp2.1\OsSql.deps.json
+C:\Users\magshimim\Documents\personal\Work\ossql\OsSql\bin\Release\netcoreapp2.1\OsSql.dll
+C:\Users\magshimim\Documents\personal\Work\ossql\OsSql\bin\Release\netcoreapp2.1\OsSql.pdb
+C:\Users\magshimim\Documents\personal\Work\ossql\OsSql\obj\Release\netcoreapp2.1\OsSql.csprojAssemblyReference.cache
+C:\Users\magshimim\Documents\personal\Work\ossql\OsSql\obj\Release\netcoreapp2.1\OsSql.csproj.CoreCompileInputs.cache
+C:\Users\magshimim\Documents\personal\Work\ossql\OsSql\obj\Release\netcoreapp2.1\OsSql.AssemblyInfoInputs.cache
+C:\Users\magshimim\Documents\personal\Work\ossql\OsSql\obj\Release\netcoreapp2.1\OsSql.AssemblyInfo.cs
+C:\Users\magshimim\Documents\personal\Work\ossql\OsSql\obj\Release\netcoreapp2.1\OsSql.dll
+C:\Users\magshimim\Documents\personal\Work\ossql\OsSql\obj\Release\netcoreapp2.1\OsSql.pdb
