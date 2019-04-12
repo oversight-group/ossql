@@ -47,23 +47,15 @@ namespace OsSql
             /// <summary>
             /// Initializes a new instance of the <c>OsSqlException</c> class.
             /// </summary>
-            public OsSqlException()
-            {
-            }
+            public OsSqlException() { }
             /// <summary>
             /// Initializes a new instance of the <c>OsSqlException</c> class with a message.
             /// </summary>
-            public OsSqlException(string message)
-                : base(message)
-            {
-            }
+            public OsSqlException(string message) : base(message) { }
             /// <summary>
             /// Initializes a new instance of the <c>OsSqlException</c> class with a message and an inner exception.
             /// </summary>
-            public OsSqlException(string message, Exception inner)
-                : base(message, inner)
-            {
-            }
+            public OsSqlException(string message, Exception inner) : base(message, inner) { }
         }
         /// <summary>
         /// An attribute class for OsSql synchronization with the database.
@@ -180,10 +172,8 @@ namespace OsSql
             /// <summary>
             /// Constructs a new instance of <c>Structure</c> without any tables.
             /// </summary>
-            public Structure()
-            {
+            public Structure() =>
                 Tables = new List<Table>();
-            }
             /// <summary>
             /// Constructs a new instance of <c>Structure</c> with predefined tables.
             /// </summary>
@@ -192,7 +182,7 @@ namespace OsSql
             public Structure(string dbname, params Table[] tables)
             {
                 DBName = dbname;
-                (this.Tables = new List<Table>()).AddRange(tables);
+                (Tables = new List<Table>()).AddRange(tables);
             }
             /// <summary>
             /// Adds a new table to the database structure.
@@ -326,6 +316,10 @@ namespace OsSql
                 /// </summary>
                 public bool AutoInc;
                 /// <summary>
+                /// Listed by ListAllClassValues.
+                /// </summary>
+                internal bool IsListed = true;
+                /// <summary>
                 /// Construct a new column instance.
                 /// </summary>
                 /// <param name="type">Type of the value as <c>ColumnType</c>.</param>
@@ -446,27 +440,26 @@ namespace OsSql
             /// <param name="classType">Type of the source class.</param>
             /// <param name="tolowercase">Lowercase names.</param>
             /// <param name="inherit"></param>
-            public void AddColumnsByAttributes(Type classType, bool tolowercase = true, bool inherit = false)
+            public void AddColumnsByAttributes(Type classType, bool tolowercase = true, bool inherit = false, bool listed = true)
             {
                 var list = classType.GetProperties();
                 foreach (var prop in list)
-                {
-                    var att = prop.GetCustomAttributes<OsSqlSaveAttribute>(inherit).FirstOrDefault() as OsSqlSaveAttribute;
-                    if (att != null)
+                    if (prop.GetCustomAttributes<OsSqlSaveAttribute>(inherit).FirstOrDefault() is var att)
                     {
-                        var pn = tolowercase ? prop.Name.ToLower() : prop.Name;
-                        var sql = att.DbName.Length == 0 ? pn : att.DbName;
-                        if (!Columns.Any(x => x.CodeName == pn || x.DbName == sql))
-                            AddColumn(att.ColType == null ? Builder.ColumnTypeFromObjectType(prop.GetType()) : att.ColType.Value, sql, pn, att.AutoInc);
+                        var sql = att.DbName.Length == 0 ? (tolowercase ? prop.Name.ToLower() : prop.Name) : att.DbName;
+                        if (!Columns.Any(x => x.CodeName == prop.Name || x.DbName == sql))
+                        {
+                            var c = AddColumn(att.ColType == null ? Builder.ColumnTypeFromObjectType(prop.PropertyType) : att.ColType.Value, sql, prop.Name, att.AutoInc);
+                            c.IsListed = listed;
+                        }
                     }
-                }
             }
             /// <summary>
-            /// 
+            /// Table name along with database name.
             /// </summary>
-            /// <returns></returns>
+            /// <returns>`dbname`.`tablename`</returns>
             public override string ToString() =>
-                string.IsNullOrEmpty(DBName) ? Name : (DBName + "." + Name);
+                string.IsNullOrEmpty(DBName) ? Name : ("`" + DBName + "`.`" + Name + "`");
         }
     }
     /// <summary>
@@ -570,6 +563,11 @@ namespace OsSql
                 SslMode = MySqlSslMode.None
             };
         }
+        private void UpdateDB(OsSqlTypes.Table table)
+        {
+            if (Connection.Database != table.DBName)
+                Connection.ChangeDatabase(table.DBName);
+        }
         /// <summary>
         /// Creates a direct connection for the purpose of reading and writing to the database.
         /// </summary>
@@ -579,6 +577,7 @@ namespace OsSql
             {
                 Connection = new MySqlConnection(ConnectionDetails.ToString());
                 Connection.Open();
+                OsSqlDebugger.Message("Connected succesfully to database: " + Connection.Database);
                 return true;
             }
             catch (MySqlException ex)
@@ -602,7 +601,7 @@ namespace OsSql
         /// <param name="parameters">Parameters to pass with the query.</param>
         public void Query(string query, params OsSqlTypes.Parameter[] parameters)
         {
-            MySqlCommand cmd = new MySqlCommand(query, Connection);
+            var cmd = new MySqlCommand(query, Connection);
             foreach (var p in parameters)
                 cmd.Parameters.AddWithValue(p.Key, p.Value);
             cmd.Prepare();
@@ -615,10 +614,8 @@ namespace OsSql
         /// <param name="condition">Condition SQL code.</param>
         /// <returns>The formatted string.</returns>
         /// <remarks>Yeah, we're that lazy.</remarks>
-        private string Condition(string condition)
-        {
-            return (condition.Length > 0 ? (" WHERE " + condition) : "");
-        }
+        private string Condition(string condition) =>
+            condition.Length > 0 ? (" WHERE " + condition) : "";
         /// <summary>
         /// Select statement for SQL.
         /// </summary>
@@ -630,19 +627,19 @@ namespace OsSql
         public List<Dictionary<string, object>> Select(string table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
             var ret = new List<Dictionary<string, object>>();
-            string query = "SELECT " + key + " FROM " + table + Condition(condition);
-            using (MySqlCommand cmd = new MySqlCommand(query, Connection))
+            var query = "SELECT " + key + " FROM " + table.ToString() + Condition(condition);
+            using (var cmd = new MySqlCommand(query, Connection))
             {
                 foreach (var p in conditionparams)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
-                OsSqlDebugger.Query(cmd);
                 cmd.Prepare();
-                using (MySqlDataReader rdr = cmd.ExecuteReader())
+                OsSqlDebugger.Query(cmd);
+                using (var rdr = cmd.ExecuteReader())
                 {
                     while (rdr.Read())
                     {
                         var newDic = new Dictionary<string, object>();
-                        for (int i = 0; i < rdr.FieldCount; i++)
+                        for (var i = 0; i < rdr.FieldCount; i++)
                             newDic.Add(rdr.GetName(i), rdr.GetValue(i));
                         ret.Add(newDic);
                     }
@@ -661,8 +658,8 @@ namespace OsSql
         /// <returns>A list of Dictionary elements based on the data.</returns>
         public List<Dictionary<string, object>> Select(OsSqlTypes.Table table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            Connection.ChangeDatabase(table.DBName);
-            return Select(table.Name, condition, key, conditionparams);
+            UpdateDB(table);
+            return Select(table.ToString(), condition, key, conditionparams);
         }
         /// <summary>
         /// Select statement for SQL based on a new instance of DataTable.
@@ -674,12 +671,13 @@ namespace OsSql
         /// <returns>The new DataTable.</returns>
         public DataTable Read(string table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            MySqlCommand cmd = new MySqlCommand("SELECT " + key + " FROM " + table + Condition(condition), Connection);
+            var cmd = new MySqlCommand("SELECT " + key + " FROM " + table.ToString() + Condition(condition), Connection);
             foreach (var p in conditionparams)
                 cmd.Parameters.AddWithValue(p.Key, p.Value);
             cmd.Prepare();
-            MySqlDataAdapter da = new MySqlDataAdapter(cmd);
-            DataSet ds = new DataSet();
+            OsSqlDebugger.Query(cmd);
+            var da = new MySqlDataAdapter(cmd);
+            var ds = new DataSet();
             da.Fill(ds, table);
             return ds.Tables[table];
         }
@@ -693,7 +691,7 @@ namespace OsSql
         /// <returns>The new DataTable.</returns>
         public DataTable Read(OsSqlTypes.Table table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            Connection.ChangeDatabase(table.DBName);
+            UpdateDB(table);
             return Read(table.Name, condition, key, conditionparams);
         }
         /// <summary>
@@ -707,11 +705,12 @@ namespace OsSql
         /// <returns>The new DataTable.</returns>
         public DataTable Read(ref DataSet ds, string table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            MySqlCommand cmd = new MySqlCommand("SELECT " + key + " FROM " + table + Condition(condition), Connection);
+            var cmd = new MySqlCommand("SELECT " + key + " FROM " + table.ToString() + Condition(condition), Connection);
             foreach (var p in conditionparams)
                 cmd.Parameters.AddWithValue(p.Key, p.Value);
             cmd.Prepare();
-            MySqlDataAdapter da = new MySqlDataAdapter(cmd);
+            OsSqlDebugger.Query(cmd);
+            var da = new MySqlDataAdapter(cmd);
             da.Fill(ds, table);
             return ds.Tables[table];
         }
@@ -726,8 +725,8 @@ namespace OsSql
         /// <returns>The new DataTable.</returns>
         public DataTable Read(ref DataSet ds, OsSqlTypes.Table table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            Connection.ChangeDatabase(table.DBName);
-            return Read(ref ds, table.Name, condition, key, conditionparams);
+            UpdateDB(table);
+            return Read(ref ds, table.ToString(), condition, key, conditionparams);
         }
         /// <summary>
         /// Updates the database.
@@ -739,7 +738,7 @@ namespace OsSql
         {
             if (parameters.Length == 0)
                 OsSqlDebugger.Error("This function requires parameters.");
-            string execQuery = "UPDATE " + table + " SET ";
+            var execQuery = "UPDATE " + table.ToString() + " SET ";
             for (int i = 0; i < parameters.Length; i++)
                 if (parameters[i].Func)
                     execQuery += "`" + parameters[i].Key + "` = @" + parameters[i].Key + (i == parameters.Length - 1 ? "" : ", ");
@@ -754,8 +753,8 @@ namespace OsSql
         /// <param name="parameters">List of keys and values to update. Only parameters with <c>function</c> set to <c>true</c> will be updated.</param>
         public void Update(OsSqlTypes.Table table, string condition, params OsSqlTypes.Parameter[] parameters)
         {
-            Connection.ChangeDatabase(table.DBName);
-            Update(table.Name, condition, parameters);
+            UpdateDB(table);
+            Update(table.ToString(), condition, parameters);
         }
         /// <summary>
         /// Returns the number of rows based on a condition.
@@ -766,10 +765,11 @@ namespace OsSql
         /// <returns>The count.</returns>
         public int Count(string table, string condition = "", params OsSqlTypes.Parameter[] conditionparams)
         {
-            MySqlCommand cmd = new MySqlCommand("SELECT COUNT(*) FROM " + table + Condition(condition), Connection);
+            var cmd = new MySqlCommand("SELECT COUNT(*) FROM " + table.ToString() + Condition(condition), Connection);
             foreach (var p in conditionparams)
                 cmd.Parameters.AddWithValue(p.Key, p.Value);
             cmd.Prepare();
+            OsSqlDebugger.Query(cmd);
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
         /// <summary>
@@ -781,8 +781,8 @@ namespace OsSql
         /// <returns>The count.</returns>
         public int Count(OsSqlTypes.Table table, string condition = "", params OsSqlTypes.Parameter[] conditionparams)
         {
-            Connection.ChangeDatabase(table.DBName);
-            return Count(table.Name, condition, conditionparams);
+            UpdateDB(table);
+            return Count(table.ToString(), condition, conditionparams);
         }
         /// <summary>
         /// Adds a new entry to the table.
@@ -793,16 +793,16 @@ namespace OsSql
         {
             if (parameters.Length == 0)
                 OsSqlDebugger.Error("This function requires parameters.");
-            string execQuery = "INSERT INTO " + table + " (";
-            for (int i = 0; i < parameters.Length; i++)
+            var execQuery = "INSERT INTO " + table.ToString() + " (";
+            for (var i = 0; i < parameters.Length; i++)
                 if (parameters[i].Func)
                     execQuery += "`" + parameters[i].Key + "`" + (i == parameters.Length - 1 ? "" : ",");
             execQuery += ") VALUES (";
-            for (int i = 0; i < parameters.Length; i++)
+            for (var i = 0; i < parameters.Length; i++)
                 if (parameters[i].Func)
                     execQuery += "@" + parameters[i].Key + (i == parameters.Length - 1 ? "" : ",");
             execQuery += "); SELECT last_insert_id()";
-            MySqlCommand cmd = new MySqlCommand(execQuery, Connection);
+            var cmd = new MySqlCommand(execQuery, Connection);
             foreach (var p in parameters)
                 cmd.Parameters.AddWithValue(p.Key, p.Value);
             cmd.Prepare();
@@ -816,8 +816,8 @@ namespace OsSql
         /// <param name="parameters">List of keys and values to insert. Only parameters with <c>function</c> set to <c>true</c> will be inserted.</param>
         public int Insert(OsSqlTypes.Table table, params OsSqlTypes.Parameter[] parameters)
         {
-            Connection.ChangeDatabase(table.DBName);
-            return Insert(table.Name, parameters);
+            UpdateDB(table);
+            return Insert(table.ToString(), parameters);
         }
         /// <summary>
         /// Deletes a row from the table.
@@ -825,10 +825,8 @@ namespace OsSql
         /// <param name="table">Table name.</param>
         /// <param name="condition">Condition code.</param>
         /// <param name="conditionparams">Parameters to pass with the condition.</param>
-        public void Delete(string table, string condition, params OsSqlTypes.Parameter[] conditionparams)
-        {
+        public void Delete(string table, string condition, params OsSqlTypes.Parameter[] conditionparams) =>
             Query("DELETE FROM " + table + Condition(condition), conditionparams);
-        }
         /// <summary>
         /// Deletes a row from the table.
         /// </summary>
@@ -837,8 +835,8 @@ namespace OsSql
         /// <param name="conditionparams">Parameters to pass with the condition.</param>
         public void Delete(OsSqlTypes.Table table, string condition, params OsSqlTypes.Parameter[] conditionparams)
         {
-            Connection.ChangeDatabase(table.DBName);
-            Delete(table.Name, condition, conditionparams);
+            UpdateDB(table);
+            Delete(table.ToString(), condition, conditionparams);
         }
         /// <summary>
         /// Checks if column exists in a table.
@@ -848,7 +846,7 @@ namespace OsSql
         /// <returns>True if the column exists, false otherwise.</returns>
         public bool IsColumnExists(OsSqlTypes.Table table, string column)
         {
-            MySqlCommand cmd = new MySqlCommand("SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" + (string.IsNullOrEmpty(table.DBName) ? ConnectionDetails.Database : table.DBName) +
+            var cmd = new MySqlCommand("SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" + (string.IsNullOrEmpty(table.DBName) ? ConnectionDetails.Database : table.DBName) +
                 "' AND TABLE_NAME = '" + table.Name + "' AND COLUMN_NAME = '" + column + "'", Connection);
             return cmd.ExecuteScalar() != null;
         }
@@ -861,8 +859,8 @@ namespace OsSql
         /// <param name="ai">Auto increment.</param>
         public void AddColumn(OsSqlTypes.Table table, OsSqlTypes.ColumnType type, string column, bool ai = false)
         {
-            Connection.ChangeDatabase(table.DBName);
-            Query("ALTER TABLE " + table.Name + " ADD " + column + " " + Builder.ColTypeSQLTitle(type) + (ai ? " NOT NULL AUTO_INCREMENT" : ""));
+            UpdateDB(table);
+            Query("ALTER TABLE " + table.ToString() + " ADD `" + column + "` " + Builder.ColTypeSQLTitle(type) + (ai ? " NOT NULL AUTO_INCREMENT" : ""));
         }
         /// <summary>
         /// Deletes a column from a table.
@@ -871,8 +869,8 @@ namespace OsSql
         /// <param name="column">Column name.</param>
         public void DropColumn(OsSqlTypes.Table table, string column)
         {
-            Connection.ChangeDatabase(table.DBName);
-            Query("ALTER TABLE " + table.Name + " DROP " + column);
+            UpdateDB(table);
+            Query("ALTER TABLE " + table.ToString() + " DROP `" + column + "`");
         }
         /// <summary>
         /// Updates the table columns in database to match the table that defined in the code.
@@ -881,8 +879,8 @@ namespace OsSql
         /// <param name="delete">Use true to delete any unrelevant columns found while updating. Note that this will delete both the columns and their rows.</param>
         public void UpdateColumns(OsSqlTypes.Table table, bool delete = false)
         {
-            List<string> TColumns = new List<string>();
-            using (MySqlCommand command = Connection.CreateCommand())
+            var TColumns = new List<string>();
+            using (var command = Connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" + (string.IsNullOrEmpty(table.DBName) ? ConnectionDetails.Database : table.DBName) + "' AND TABLE_NAME = N'" + table.Name + "'";
                 using (var reader = command.ExecuteReader())
@@ -926,8 +924,8 @@ namespace OsSql
         /// <param name="skipnull">Use true to skip any property that is equal to null so the query won't contain it.</param>
         public void AutoUpdate(object classPointer, OsSqlTypes.Table table, string condition, string name = "", bool skipnull = false, params OsSqlTypes.Parameter[] conditionparams)
         {
-            string t = name == string.Empty ? table.ToString() : name;
-            List<OsSqlTypes.Parameter> uplist = Builder.ListAllClassValues(classPointer, table, t, skipnull);
+            var t = name == string.Empty ? table.ToString() : name;
+            var uplist = Builder.ListAllClassValues(classPointer, table, t, skipnull);
             uplist.ForEach(i => i.Func = true);
             uplist.AddRange(conditionparams);
             Update(t, condition, uplist.ToArray());
@@ -942,8 +940,8 @@ namespace OsSql
         /// <param name="skipnull">Use true to skip any property that is equal to null so the query won't contain it.</param>
         public int AutoInsert(object classPointer, OsSqlTypes.Table table, string name = "", bool skipnull = false)
         {
-            string t = name == string.Empty ? table.ToString() : name;
-            List<OsSqlTypes.Parameter> uplist = Builder.ListAllClassValues(classPointer, table, t, skipnull);
+            var t = name == string.Empty ? table.ToString() : name;
+            var uplist = Builder.ListAllClassValues(classPointer, table, t, skipnull);
             uplist.ForEach(i => i.Func = true);
             var arr = uplist.ToArray();
             return Insert(t, arr);
@@ -956,10 +954,8 @@ namespace OsSql
         /// <param name="condition">Select condition.</param>
         /// <param name="name">Table name in database. Leave blank if it's the same as <c>table.Name</c>.</param>
         /// <param name="conditionparams">Parameters to pass with the condition.</param>
-        public List<Dictionary<string, object>> AutoSelect(OsSqlTypes.Table table, string condition, string name = "", params OsSqlTypes.Parameter[] conditionparams)
-        {
-            return Select(name == string.Empty ? table.ToString() : name, condition, string.Join(",", table.Columns.Select(x => "`" + x.DbName + "`")), conditionparams);
-        }
+        public List<Dictionary<string, object>> AutoSelect(OsSqlTypes.Table table, string condition, string name = "", params OsSqlTypes.Parameter[] conditionparams) =>
+            Select(name == string.Empty ? table.ToString() : name, condition, string.Join(",", table.Columns.Select(x => "`" + x.DbName + "`")), conditionparams);
         /// <summary>
         /// Auto-reads from the database based on the synchronized table parameter, then loads all of the data to a new constructed instance of the specified class type.
         /// Any custom proprety type in the code is skipped. Only properties defined in the table parameter gets set.
@@ -976,12 +972,12 @@ namespace OsSql
             data = new Dictionary<OsSqlTypes.Table.Column, object>();
             var selectedData = Read(name == string.Empty ? table.ToString() : name, condition, string.Join(",", table.Columns.Select(x => "`" + x.DbName + "`")), conditionparams);
             object loadedData = null;
-            Type instanceType = typeof(T);
-            T instance = (T)Activator.CreateInstance(instanceType);
+            var instanceType = typeof(T);
+            var instance = (T)Activator.CreateInstance(instanceType);
             foreach (var c in table.Columns)
             {
                 data.Add(c, selectedData.Rows[0][c.DbName]);
-                PropertyInfo prop = instanceType.GetProperty(c.CodeName);
+                var prop = instanceType.GetProperty(c.CodeName);
                 if (prop != null && prop.CanWrite && (loadedData = Builder.GetObject(selectedData.Rows[0][c.DbName], c.ColType, false, out bool success, prop.PropertyType)) != null)
                 {
                     if (success)
@@ -1005,26 +1001,29 @@ namespace OsSql
         /// <param name="table">The table with the defined columns in order to tell which properties to get.</param>
         /// <param name="name">Table name in the database, leave blank for the name to be the same as the class name.</param>
         /// <param name="skipnull">Use true to skip properties that their values are null.</param>
+        /// <param name="type">Reference to a class type. If set to null, <c>classPointer</c> type will be used.</param>
         /// <returns>Returns array with all key and value parameters based on the class object properties.</returns>
-        public static List<OsSqlTypes.Parameter> ListAllClassValues(object classPointer, OsSqlTypes.Table table, string name = "", bool skipnull = false)
+        public static List<OsSqlTypes.Parameter> ListAllClassValues(object classPointer, OsSqlTypes.Table table, string name = "", bool skipnull = false, Type type = null)
         {
             var retList = new List<OsSqlTypes.Parameter>();
-            string t = name == string.Empty ? classPointer.GetType().Name : name;
+            var t = name == string.Empty ? classPointer.GetType().Name : name;
             PropertyInfo result = null;
             object val = null;
             foreach (var i in table.Columns)
             {
-                result = classPointer.GetType().GetProperty(i.CodeName);
+                if (!i.IsListed)
+                    continue;
+                result = (type ?? classPointer.GetType()).GetProperty(i.CodeName, BindingFlags.FlattenHierarchy | BindingFlags.Instance | BindingFlags.Public);
                 if (result == null)
                     continue;
                 val = result.GetValue(classPointer);
                 if (skipnull && val == null)
                     continue;
-                val = GetObject(val, i.ColType, true, out bool success);
-                if (val == null || !success)
+                var test = GetObject(val, i.ColType, true, out bool success);
+                if (test == null || !success)
                     OsSqlDebugger.Error("Invalid object type. If you've tried to use your own class, please implement the IOsSqlElement interface.");
                 else
-                    retList.Add(new OsSqlTypes.Parameter(i.DbName, val));
+                    retList.Add(new OsSqlTypes.Parameter(i, val));
             }
             return retList;
         }
@@ -1044,7 +1043,7 @@ namespace OsSql
                 success = true;
                 return DBNull.Value;
             }
-            Type t = pt ?? content.GetType();
+            var t = pt ?? content.GetType();
             success = false;
             if (t.IsArray)
                 return null;
@@ -1107,20 +1106,14 @@ namespace OsSql
                             return val;
                         }
                     case OsSqlTypes.ColumnType.LongText:
-                        break;
                     case OsSqlTypes.ColumnType.MediumText:
-                        break;
                     case OsSqlTypes.ColumnType.TinyText:
-                        break;
                     case OsSqlTypes.ColumnType.Text:
-                        break;
                     case OsSqlTypes.ColumnType.Varchar:
-                        break;
                     case OsSqlTypes.ColumnType.NVarchar:
                         {
                             success = true;
-                            return Convert.ToString(content);
-                            //return TextValue(Convert.ToString(content), !save);
+                            return save ? ("\"" + Convert.ToString(content) + "\"") : Convert.ToString(content); // save ? $"\"{TextValue(Convert.ToString(content))}\"" : TextValue(Convert.ToString(content), true); // TextValue(Convert.ToString(content), !save);
                         }
                     case OsSqlTypes.ColumnType.Object:
                         {
@@ -1168,10 +1161,8 @@ namespace OsSql
         /// <param name="value">Text value.</param>
         /// <param name="reverse">True if the operation should be reversed, meaning double-quotes will become quotes.</param>
         /// <returns>The modified text value.</returns>
-        private static string TextValue(string value, bool reverse = false)
-        {
-            return !reverse ? value.Replace("'", "''") : value.Replace("''", "'");
-        }
+        private static string TextValue(string value, bool reverse = false) =>
+            !reverse ? value.Replace("'", "''") : value.Replace("''", "'");
         /// <summary>
         /// Generates a full database creation query based on a collection of tables.
         /// </summary>
@@ -1223,19 +1214,15 @@ namespace OsSql
         /// </summary>
         /// <param name="structure">The <c>Structure</c> object.</param>
         /// <returns>The creation query string.</returns>
-        public static string GetCreationQuery(OsSqlTypes.Structure structure)
-        {
-            return GetCreationQuery(structure.Tables);
-        }
+        public static string GetCreationQuery(OsSqlTypes.Structure structure) =>
+            GetCreationQuery(structure.Tables);
         /// <summary>
         /// Generates a full database creaton query based on specified tables.
         /// </summary>
         /// <param name="list">The tables.</param>
         /// <returns>The creation query.</returns>
-        public static string GetCreationQuery(params OsSqlTypes.Table[] list)
-        {
-            return GetCreationQuery(list);
-        }
+        public static string GetCreationQuery(params OsSqlTypes.Table[] list) =>
+            GetCreationQuery(list);
         /// <summary>
         /// Gets a <c>ColumnType</c> of object by its type.
         /// </summary>
@@ -1295,21 +1282,17 @@ namespace OsSql
         /// </summary>
         /// <param name="datetime">DateTime object.</param>
         /// <returns>Returns long value that represents a unix time.</returns>
-        internal static long UnixTimeFromDateTime(DateTime datetime)
-        {
-            return (long)Math.Truncate((datetime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
-        }
+        internal static long UnixTimeFromDateTime(DateTime datetime) =>
+            (long)Math.Truncate((datetime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
         /// <summary>
         /// Converts a unix time to a DateTime object.
         /// </summary>
         /// <param name="unixtime">The unix time long value.</param>
         /// <returns>DateTime object.</returns>
-        internal static DateTime DateTimeFromUnixTime(long unixtime)
-        {
-            return new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixtime).ToLocalTime();
-        }
+        internal static DateTime DateTimeFromUnixTime(long unixtime) =>
+            new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixtime).ToLocalTime();
     }
-    /* Irrelevant since I use Newtonsoft.Json.
+    /* Irrelevant since we use Newtonsoft.Json.
     /// <summary>
     /// Json class handles conversion of JSON objects.
     /// </summary>

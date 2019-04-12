@@ -396,11 +396,10 @@
   },
   "libraries": {
     "Google.Protobuf/3.5.1": {
-      "sha512": "j/gbpRZ68sgvdi/vXI39Cj/jWG4d1dtDqfWbkjC9dErNWu/dFcIlq1LIgLscea+llZ6nzm06wz/JGziOegAL7Q==",
+      "sha512": "f2k1VNaB9bfvEsvARzzEL1TZiIpL33KKK3JMH7UANlPlJVptuvsk4qpBZEnz0pORWZOdUHlVwMQuUzFqjJYCxA==",
       "type": "package",
       "path": "google.protobuf/3.5.1",
       "files": [
-        ".signature.p7s",
         "google.protobuf.3.5.1.nupkg.sha512",
         "google.protobuf.nuspec",
         "lib/net45/Google.Protobuf.dll",
@@ -746,11 +745,10 @@
       ]
     },
     "MySql.Data/8.0.12": {
-      "sha512": "vcVmD7C/socXjlyzY2vjF+bq/NdxrMtQqPym9pZxk6qfUK7dq/KX8XrY/wa5TYp3IHM1JR0UzEfBKNCGmtr1Lg==",
+      "sha512": "I2jGfuyeomrGJ+N9O+vuV2ucyeayf/tMFREKPdjUcs1/wUF0t+WgUnnzJmJl4sNePNR1fEvAGaGbVAo4uLSF2A==",
       "type": "package",
       "path": "mysql.data/8.0.12",
       "files": [
-        ".signature.p7s",
         "lib/net452/MySql.Data.dll",
         "lib/net452/MySql.Data.xml",
         "lib/netcoreapp2.0/MySql.Data.dll",
@@ -919,11 +917,10 @@
       ]
     },
     "System.Configuration.ConfigurationManager/4.4.1": {
-      "sha512": "LoSjM/kLDpyLyoGsmwS5oVMRzHf/0XHkRpr3QZu/HuAv6Sfk919usTMLqD9N9VK3S4Q2+bd3tKJ0ko4MYFfq4Q==",
+      "sha512": "jz3TWKMAeuDEyrPCK5Jyt4bzQcmzUIMcY9Ud6PkElFxTfnsihV+9N/UCqvxe1z5gc7jMYAnj7V1COMS9QKIuHQ==",
       "type": "package",
       "path": "system.configuration.configurationmanager/4.4.1",
       "files": [
-        ".signature.p7s",
         "LICENSE.TXT",
         "THIRD-PARTY-NOTICES.TXT",
         "lib/net461/System.Configuration.ConfigurationManager.dll",
@@ -977,11 +974,10 @@
       ]
     },
     "System.Security.Cryptography.ProtectedData/4.4.0": {
-      "sha512": "WwEexvBd+17yfY7fcS+fBGl+HADEfCJuKeDJqBT7D6j6vKwYvfLyGuq2y/MmrKORC6mbYwth7kjinO1mPhTL3g==",
+      "sha512": "cJV7ScGW7EhatRsjehfvvYVBvtiSMKgN8bOVI0bQhnF5bU7vnHVIsH49Kva7i7GWaWYvmEzkYVk1TC+gZYBEog==",
       "type": "package",
       "path": "system.security.cryptography.protecteddata/4.4.0",
       "files": [
-        ".signature.p7s",
         "LICENSE.TXT",
         "THIRD-PARTY-NOTICES.TXT",
         "lib/MonoAndroid10/_._",
@@ -1017,11 +1013,10 @@
       ]
     },
     "System.Security.Permissions/4.4.1": {
-      "sha512": "tXBMO8OJEuw9c4KjLj4fwxJusely90azF24Uktz/evgvowAtU963HYl+G93gaRZr6pvYvsSPrjkN4+2pdVUbgw==",
+      "sha512": "l8IxQ9mEAkKv85uoEcjcYhrh+yTLZtLgNqb2T7QChTdKXh45EUnmKd+Ckdt1D+VYW2dk2Pb5MT+0zwQ74Jd2Xg==",
       "type": "package",
       "path": "system.security.permissions/4.4.1",
       "files": [
-        ".signature.p7s",
         "LICENSE.TXT",
         "THIRD-PARTY-NOTICES.TXT",
         "lib/net461/System.Security.Permissions.dll",
@@ -1132,24 +1127,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\magshimim\\.nuget\\packages\\": {},
+    "C:\\Users\\Amit\\.nuget\\packages\\": {},
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\magshimim\\Documents\\personal\\Work\\ossql\\OsSql\\OsSql.csproj",
+      "projectUniqueName": "C:\\Users\\Amit\\Dropbox (Personal)\\עמית\\פרויקטים\\C#\\OsSql\\OsSql\\OsSql.csproj",
       "projectName": "OsSql",
-      "projectPath": "C:\\Users\\magshimim\\Documents\\personal\\Work\\ossql\\OsSql\\OsSql.csproj",
-      "packagesPath": "C:\\Users\\magshimim\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\magshimim\\Documents\\personal\\Work\\ossql\\OsSql\\obj\\",
+      "projectPath": "C:\\Users\\Amit\\Dropbox (Personal)\\עמית\\פרויקטים\\C#\\OsSql\\OsSql\\OsSql.csproj",
+      "packagesPath": "C:\\Users\\Amit\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Amit\\Dropbox (Personal)\\עמית\\פרויקטים\\C#\\OsSql\\OsSql\\obj\\",
       "projectStyle": "PackageReference",
       "crossTargeting": true,
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\magshimim\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Amit\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [

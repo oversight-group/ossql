@@ -2,6 +2,10 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;net452</TargetFrameworks>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Copyright>Oversight</Copyright>
+    <PackageProjectUrl></PackageProjectUrl>
+    <RepositoryUrl>https://github.com/oversight-group/ossql</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
