@@ -287,7 +287,11 @@ namespace OsSql
             /// <summary>
             /// An IOsSqlElement type, saved as int (based on Save() function).
             /// </summary>
-            Element
+            Element,
+            /// <summary>
+            /// A Timespan, saved as int (seconds)
+            /// </summary>
+            TimeSpan
         };
         /// <summary>
         /// Table class handles a single table in a structure.
@@ -1113,7 +1117,7 @@ namespace OsSql
                     case OsSqlTypes.ColumnType.NVarchar:
                         {
                             success = true;
-                            return save ? ("\"" + Convert.ToString(content) + "\"") : Convert.ToString(content); // save ? $"\"{TextValue(Convert.ToString(content))}\"" : TextValue(Convert.ToString(content), true); // TextValue(Convert.ToString(content), !save);
+                            return Convert.ToString(content); // save ? $"\"{TextValue(Convert.ToString(content))}\"" : TextValue(Convert.ToString(content), true); // TextValue(Convert.ToString(content), !save);
                         }
                     case OsSqlTypes.ColumnType.Object:
                         {
@@ -1145,6 +1149,14 @@ namespace OsSql
                                 return Timestamp.UnixTimeFromDateTime((DateTime)content);
                             else
                                 return Timestamp.DateTimeFromUnixTime(Convert.ToInt32(content));
+                        }
+                    case OsSqlTypes.ColumnType.TimeSpan:
+                        {
+                            success = true;
+                            if (save)
+                                return ((TimeSpan)content).Ticks;
+                            else
+                                return new TimeSpan(Convert.ToInt64(content));
                         }
                 }
             }
@@ -1205,6 +1217,8 @@ namespace OsSql
                     return "BIGINT";
                 case OsSqlTypes.ColumnType.Object:
                     return "MEDIUMTEXT";
+                case OsSqlTypes.ColumnType.TimeSpan:
+                    return "BIGINT";
                 default:
                     return type.ToString().ToUpper();
             }
@@ -1267,6 +1281,9 @@ namespace OsSql
                     break;
                 case "Decimal":
                     ret = OsSqlTypes.ColumnType.Decimal;
+                    break;
+                case "TimeSpan":
+                    ret = OsSqlTypes.ColumnType.TimeSpan;
                     break;
             }
             return ret;
