@@ -20,3 +20,14 @@ C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Re
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.csproj.CopyComplete
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.dll
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.pdb
+C:\Users\Liran\git\ossql\OsSql\bin\Release\net452\OsSql.dll
+C:\Users\Liran\git\ossql\OsSql\bin\Release\net452\OsSql.pdb
+C:\Users\Liran\git\ossql\OsSql\bin\Release\net452\Google.Protobuf.dll
+C:\Users\Liran\git\ossql\OsSql\bin\Release\net452\MySql.Data.dll
+C:\Users\Liran\git\ossql\OsSql\bin\Release\net452\Newtonsoft.Json.dll
+C:\Users\Liran\git\ossql\OsSql\obj\Release\net452\OsSql.csproj.CoreCompileInputs.cache
+C:\Users\Liran\git\ossql\OsSql\obj\Release\net452\OsSql.AssemblyInfoInputs.cache
+C:\Users\Liran\git\ossql\OsSql\obj\Release\net452\OsSql.AssemblyInfo.cs
+C:\Users\Liran\git\ossql\OsSql\obj\Release\net452\OsSql.csproj.CopyComplete
+C:\Users\Liran\git\ossql\OsSql\obj\Release\net452\OsSql.dll
+C:\Users\Liran\git\ossql\OsSql\obj\Release\net452\OsSql.pdb
