@@ -221,17 +221,33 @@ namespace OsSql
             /// </summary>
             Int,
             /// <summary>
+            /// 0 to 4294967295.
+            /// </summary>
+            UInt,
+            /// <summary>
             /// -128 to 127.
             /// </summary>
             TinyInt,
+            /// <summary>
+            /// 0 to 255.
+            /// </summary>
+            Byte,
             /// <summary>
             /// -32768 to 32767.
             /// </summary>
             SmallInt,
             /// <summary>
+            /// 0 to 65535.
+            /// </summary>
+            USmallInt,
+            /// <summary>
             /// -9223372036854775808 to 9223372036854775807
             /// </summary>
             BigInt,
+            /// <summary>
+            /// 0 to 18446744073709551615.
+            /// </summary>
+            UBigInt,
             /// <summary>
             /// Holds a variable length string (can contain letters, numbers, and special characters). The maximum size is specified in parenthesis. Can store up to 255 characters.
             /// </summary>
@@ -450,6 +466,8 @@ namespace OsSql
                 foreach (var prop in list)
                     if (prop.GetCustomAttributes<OsSqlSaveAttribute>(inherit).FirstOrDefault() is var att)
                     {
+                        if (att == null)
+                            continue;
                         var sql = att.DbName.Length == 0 ? (tolowercase ? prop.Name.ToLower() : prop.Name) : att.DbName;
                         if (!Columns.Any(x => x.CodeName == prop.Name || x.DbName == sql))
                         {
@@ -1040,7 +1058,7 @@ namespace OsSql
         /// <param name="success">Value saying if the conversion successed.</param>
         /// <param name="pt">Property type.</param>
         /// <returns>The object with its relevant type, or null if the type is not supported.</returns>
-        internal static object GetObject(object content, OsSqlTypes.ColumnType? type, bool save, out bool success, Type pt = null)
+        public static object GetObject(object content, OsSqlTypes.ColumnType? type, bool save, out bool success, Type pt = null)
         {
             if (content == null)
             {
@@ -1071,6 +1089,11 @@ namespace OsSql
                     case OsSqlTypes.ColumnType.BigInt:
                         {
                             success = long.TryParse(content.ToString(), out long val);
+                            return val;
+                        }
+                    case OsSqlTypes.ColumnType.UBigInt:
+                        {
+                            success = ulong.TryParse(content.ToString(), out ulong val);
                             return val;
                         }
                     case OsSqlTypes.ColumnType.Decimal:
@@ -1109,6 +1132,11 @@ namespace OsSql
                             success = int.TryParse(content.ToString(), out int val);
                             return val;
                         }
+                    case OsSqlTypes.ColumnType.UInt:
+                        {
+                            success = uint.TryParse(content.ToString(), out uint val);
+                            return val;
+                        }
                     case OsSqlTypes.ColumnType.LongText:
                     case OsSqlTypes.ColumnType.MediumText:
                     case OsSqlTypes.ColumnType.TinyText:
@@ -1132,9 +1160,19 @@ namespace OsSql
                             success = short.TryParse(content.ToString(), out short val);
                             return val;
                         }
+                    case OsSqlTypes.ColumnType.USmallInt:
+                        {
+                            success = ushort.TryParse(content.ToString(), out ushort val);
+                            return val;
+                        }
                     case OsSqlTypes.ColumnType.TinyInt:
                         {
                             success = sbyte.TryParse(content.ToString(), out sbyte val);
+                            return val;
+                        }
+                    case OsSqlTypes.ColumnType.Byte:
+                        {
+                            success = byte.TryParse(content.ToString(), out byte val);
                             return val;
                         }
                     case OsSqlTypes.ColumnType.Boolean:
@@ -1148,7 +1186,7 @@ namespace OsSql
                             if (save)
                                 return Timestamp.UnixTimeFromDateTime((DateTime)content);
                             else
-                                return Timestamp.DateTimeFromUnixTime(Convert.ToInt32(content));
+                                return Timestamp.DateTimeFromUnixTime(Convert.ToInt64(content));
                         }
                     case OsSqlTypes.ColumnType.TimeSpan:
                         {
@@ -1214,11 +1252,18 @@ namespace OsSql
                 case OsSqlTypes.ColumnType.Element:
                 case OsSqlTypes.ColumnType.Enum:
                 case OsSqlTypes.ColumnType.DateTime:
+                case OsSqlTypes.ColumnType.TimeSpan:
                     return "BIGINT";
                 case OsSqlTypes.ColumnType.Object:
                     return "MEDIUMTEXT";
-                case OsSqlTypes.ColumnType.TimeSpan:
+                case OsSqlTypes.ColumnType.Byte:
+                    return "SMALLINT";
+                case OsSqlTypes.ColumnType.USmallInt:
+                    return "INT";
+                case OsSqlTypes.ColumnType.UInt:
                     return "BIGINT";
+                case OsSqlTypes.ColumnType.UBigInt:
+                    return "BIGINT"; // throw new NotSupportedException(); TODO: Unsigned ints are currently NOT fully supported!
                 default:
                     return type.ToString().ToUpper();
             }
@@ -1251,21 +1296,33 @@ namespace OsSql
                 return ret;
             switch (type.Name)
             {
+                // TODO: Unsigned ints are currently NOT fully supported!
                 case "SByte":
                     ret = OsSqlTypes.ColumnType.TinyInt;
                     break;
                 case "Byte":
+                    ret = OsSqlTypes.ColumnType.Byte;
+                    break;
                 case "Int16":
                     ret = OsSqlTypes.ColumnType.SmallInt;
+                    break;
+                case "UInt16":
+                    ret = OsSqlTypes.ColumnType.USmallInt;
                     break;
                 case "Int32":
                     ret = OsSqlTypes.ColumnType.Int;
                     break;
-                case "Boolean":
-                    ret = OsSqlTypes.ColumnType.Boolean;
+                case "UInt32":
+                    ret = OsSqlTypes.ColumnType.UInt;
                     break;
                 case "Int64":
                     ret = OsSqlTypes.ColumnType.BigInt;
+                    break;
+                case "UInt64":
+                    ret = OsSqlTypes.ColumnType.UBigInt;
+                    break;
+                case "Boolean":
+                    ret = OsSqlTypes.ColumnType.Boolean;
                     break;
                 case "DateTime":
                     ret = OsSqlTypes.ColumnType.DateTime;
