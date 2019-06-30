@@ -570,10 +570,6 @@ namespace OsSql
         /// </summary>
         public string ConnectionString = null;
         /// <summary>
-        /// Selects wether to use a single or global connection.
-        /// </summary>
-        public bool UseSingleConnection = true;
-        /// <summary>
         /// Constructs a new SQL instance.
         /// </summary>
         /// <param name="server">The server IP address or host name.</param>
@@ -581,8 +577,7 @@ namespace OsSql
         /// <param name="uid">The login username.</param>
         /// <param name="passwd">The login password</param>
         /// <param name="port">Port for server connection.</param>
-        /// <param name="single">Selects wether to use a single or global connection</param>
-        public SQL(string server, string database, string uid, string passwd, ushort port = 3306, bool single = true)
+        public SQL(string server, string database, string uid, string passwd, ushort port = 3306)
         {
             ConnectionDetails = new MySqlConnectionStringBuilder()
             {
@@ -593,7 +588,6 @@ namespace OsSql
                 Port = port,
                 SslMode = MySqlSslMode.None
             };
-            UseSingleConnection = single;
             ConnectionString = ConnectionDetails.ToString();
         }
         private void UpdateDB(OsSqlTypes.Table table)
@@ -606,8 +600,6 @@ namespace OsSql
         /// </summary>
         public bool Connect()
         {
-            if (!UseSingleConnection)
-                return true;
             try
             {
                 Connection = new MySqlConnection(ConnectionString);
@@ -626,29 +618,8 @@ namespace OsSql
         /// </summary>
         public void Disconnect()
         {
-            if (!UseSingleConnection)
-                return;
             Connection.Close();
             Connection.Dispose();
-        }
-        private MySqlConnection GetConnection()
-        {
-            if (UseSingleConnection)
-                return Connection;
-            else
-            {
-                var conn = new MySqlConnection(ConnectionString);
-                conn.Open();
-                return conn;
-            }
-        }
-        private void CloseConnection(MySqlConnection conn)
-        {
-            if (!UseSingleConnection)
-            {
-                conn.Close();
-                conn.Dispose();
-            }
         }
         /// <summary>
         /// Sends a query to the database.
@@ -657,8 +628,7 @@ namespace OsSql
         /// <param name="parameters">Parameters to pass with the query.</param>
         public void Query(string query, params OsSqlTypes.Parameter[] parameters)
         {
-            var connection = GetConnection();
-            using (var cmd = new MySqlCommand(query, connection))
+            using (var cmd = new MySqlCommand(query, Connection))
             {
                 foreach (var p in parameters)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
@@ -667,7 +637,6 @@ namespace OsSql
                 cmd.ExecuteNonQuery();
                 cmd.Dispose();
             }
-            CloseConnection(connection);
         }
         /// <summary>
         /// Condition format for queries.
@@ -687,12 +656,9 @@ namespace OsSql
         /// <returns>A list of Dictionary elements based on the data.</returns>
         public List<Dictionary<string, object>> Select(string table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            var connection = GetConnection();
-            if (connection.State != ConnectionState.Open)
-                connection.Open();
             var ret = new List<Dictionary<string, object>>();
             var query = "SELECT " + key + " FROM " + table.ToString() + Condition(condition);
-            using (var cmd = new MySqlCommand(query, connection))
+            using (var cmd = new MySqlCommand(query, Connection))
             {
                 foreach (var p in conditionparams)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
@@ -710,7 +676,6 @@ namespace OsSql
                     rdr.Close();
                 }
             }
-            CloseConnection(connection);
             return ret;
         }
         /// <summary>
@@ -736,10 +701,7 @@ namespace OsSql
         /// <returns>The new DataTable.</returns>
         public DataTable Read(string table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            var connection = GetConnection();
-            if (connection.State != ConnectionState.Open)
-                connection.Open();
-            using (var cmd = new MySqlCommand("SELECT " + key + " FROM " + table.ToString() + Condition(condition), connection))
+            using (var cmd = new MySqlCommand("SELECT " + key + " FROM " + table.ToString() + Condition(condition), Connection))
             {
                 foreach (var p in conditionparams)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
@@ -750,7 +712,6 @@ namespace OsSql
                 da.Fill(ds, table);
                 return ds.Tables[table];
             }
-            CloseConnection(connection);
         }
         /// <summary>
         /// Select statement for SQL based on a new instance of DataTable.
@@ -776,8 +737,7 @@ namespace OsSql
         /// <returns>The new DataTable.</returns>
         public DataTable Read(ref DataSet ds, string table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            var connection = GetConnection();
-            using (var cmd = new MySqlCommand("SELECT " + key + " FROM " + table.ToString() + Condition(condition), connection))
+            using (var cmd = new MySqlCommand("SELECT " + key + " FROM " + table.ToString() + Condition(condition), Connection))
             {
                 foreach (var p in conditionparams)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
@@ -785,9 +745,7 @@ namespace OsSql
                 OsSqlDebugger.Query(cmd);
                 var da = new MySqlDataAdapter(cmd);
                 da.Fill(ds, table);
-                var result = ds.Tables[table];
-                CloseConnection(connection);
-                return result;
+                return ds.Tables[table];
             }
         }
         /// <summary>
@@ -841,16 +799,13 @@ namespace OsSql
         /// <returns>The count.</returns>
         public int Count(string table, string condition = "", params OsSqlTypes.Parameter[] conditionparams)
         {
-            var connection = GetConnection();
-            using (var cmd = new MySqlCommand("SELECT COUNT(*) FROM " + table.ToString() + Condition(condition), connection))
+            using (var cmd = new MySqlCommand("SELECT COUNT(*) FROM " + table.ToString() + Condition(condition), Connection))
             {
                 foreach (var p in conditionparams)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
                 cmd.Prepare();
                 OsSqlDebugger.Query(cmd);
-                var result = Convert.ToInt32(cmd.ExecuteScalar());
-                CloseConnection(connection);
-                return result;
+                return Convert.ToInt32(cmd.ExecuteScalar());
             }
         }
         /// <summary>
@@ -872,7 +827,6 @@ namespace OsSql
         /// <param name="parameters">List of keys and values to insert. Only parameters with <c>function</c> set to <c>true</c> will be inserted.</param>
         public int Insert(string table, params OsSqlTypes.Parameter[] parameters)
         {
-            var connection = GetConnection();
             if (parameters.Length == 0)
                 OsSqlDebugger.Error("This function requires parameters.");
             var execQuery = "INSERT INTO " + table.ToString() + " (";
@@ -884,15 +838,13 @@ namespace OsSql
                 if (parameters[i].Func)
                     execQuery += "@" + parameters[i].Key + (i == parameters.Length - 1 ? "" : ",");
             execQuery += "); SELECT last_insert_id()";
-            using (var cmd = new MySqlCommand(execQuery, connection))
+            using (var cmd = new MySqlCommand(execQuery, Connection))
             {
                 foreach (var p in parameters)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
                 cmd.Prepare();
                 OsSqlDebugger.Query(cmd);
-                var result = Convert.ToInt32(cmd.ExecuteScalar());
-                CloseConnection(connection);
-                return result;
+                return Convert.ToInt32(cmd.ExecuteScalar());
             }
         }
         /// <summary>
@@ -932,14 +884,9 @@ namespace OsSql
         /// <returns>True if the column exists, false otherwise.</returns>
         public bool IsColumnExists(OsSqlTypes.Table table, string column)
         {
-            var connection = GetConnection();
             using (var cmd = new MySqlCommand("SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" + (string.IsNullOrEmpty(table.DBName) ? ConnectionDetails.Database : table.DBName) +
             "' AND TABLE_NAME = '" + table.Name + "' AND COLUMN_NAME = '" + column + "'", Connection))
-            {
-                var result = cmd.ExecuteScalar() != null;
-                CloseConnection(connection);
-                return result;
-            }
+                return cmd.ExecuteScalar() != null;
         }
         /// <summary>
         /// Adds a new column to a table.
@@ -971,7 +918,6 @@ namespace OsSql
         public void UpdateColumns(OsSqlTypes.Table table, bool delete = false)
         {
             var TColumns = new List<string>();
-            var connection = GetConnection();
             using (var command = Connection.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" + (string.IsNullOrEmpty(table.DBName) ? ConnectionDetails.Database : table.DBName) + "' AND TABLE_NAME = N'" + table.Name + "'";
@@ -982,7 +928,6 @@ namespace OsSql
                     reader.Close();
                 }
             }
-            CloseConnection(connection);
             foreach (var c in table.Columns)
             {
                 int index = TColumns.IndexOf(c.DbName);
@@ -1428,7 +1373,7 @@ namespace OsSql
         /// <param name="datetime">DateTime object.</param>
         /// <returns>Returns long value that represents a unix time.</returns>
         internal static long UnixTimeFromDateTime(DateTime datetime) =>
-            (long)Math.Truncate(datetime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
+            (long)Math.Truncate((datetime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
         /// <summary>
         /// Converts a unix time to a DateTime object.
         /// </summary>
