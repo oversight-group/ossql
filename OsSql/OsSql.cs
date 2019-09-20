@@ -307,7 +307,11 @@ namespace OsSql
             /// <summary>
             /// A Timespan, saved as int (seconds)
             /// </summary>
-            TimeSpan
+            TimeSpan,
+            /// <summary>
+            /// A Timespan, saved as long (ticks)
+            /// </summary>
+            TimeSpanTicks
         };
         /// <summary>
         /// Table class handles a single table in a structure.
@@ -620,6 +624,20 @@ namespace OsSql
         {
             Connection.Close();
             Connection.Dispose();
+        }
+        /// <summary>
+        /// Reconnects to the database, if needed.
+        /// </summary>
+        /// <returns>True if reconnected, false if already connected.</returns>
+        public bool RefreshConnection()
+        {
+            if (Connection.State != ConnectionState.Open || Connection.IsPasswordExpired)
+            {
+                Connection.Open();
+                OsSqlDebugger.Message("Reconnected succesfully to database: " + Connection.Database);
+                return true;
+            }
+            return false;
         }
         /// <summary>
         /// Sends a query to the database.
@@ -1208,6 +1226,14 @@ namespace OsSql
                         {
                             success = true;
                             if (save)
+                                return ((TimeSpan)content).Seconds;
+                            else
+                                return TimeSpan.FromSeconds(Convert.ToDouble(content));
+                        }
+                    case OsSqlTypes.ColumnType.TimeSpanTicks:
+                        {
+                            success = true;
+                            if (save)
                                 return ((TimeSpan)content).Ticks;
                             else
                                 return new TimeSpan(Convert.ToInt64(content));
@@ -1269,6 +1295,7 @@ namespace OsSql
                 case OsSqlTypes.ColumnType.Enum:
                 case OsSqlTypes.ColumnType.DateTime:
                 case OsSqlTypes.ColumnType.TimeSpan:
+                case OsSqlTypes.ColumnType.TimeSpanTicks:
                     return "BIGINT";
                 case OsSqlTypes.ColumnType.Object:
                     return "MEDIUMTEXT";
