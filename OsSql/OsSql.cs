@@ -325,11 +325,7 @@ namespace OsSql
             /// <summary>
             /// One single connection for each request.
             /// </summary>
-            PerRequest,
-            /// <summary>
-            /// Multiple connections managed with thread pool.
-            /// </summary>
-            Pool
+            Single
         }
         /// <summary>
         /// Table class handles a single table in a structure.
@@ -540,9 +536,15 @@ namespace OsSql
         /// </summary>
         public static event DebugDelegate OnOsSqlDebugMessage;
         /// <summary>
+        /// Event handler for query debugging.
+        /// </summary>
+        /// <param name="connection">Connection ID.</param>
+        /// <param name="query">Query string.</param>
+        public delegate void QueryDelegate(int connection, string query);
+        /// <summary>
         /// An event used to trace OsSql queries.
         /// </summary>
-        public static event DebugDelegate OnOsSqlQuery;
+        public static event QueryDelegate OnOsSqlQuery;
         /// <summary>
         /// Sends a debug information message.
         /// </summary>
@@ -571,7 +573,7 @@ namespace OsSql
             string cmdtext = cmd.CommandText;
             for (int i = 0; i < cmd.Parameters.Count; i++)
                 cmdtext = cmdtext.Replace("@" + cmd.Parameters[i].ParameterName, cmd.Parameters[i].Value.ToString());
-            OnOsSqlQuery?.Invoke(OsSqlDebugType.Queries, cmdtext);
+            OnOsSqlQuery?.Invoke(cmd.Connection.ServerThread, cmdtext);
         }
     }
     /// <summary>
@@ -595,10 +597,6 @@ namespace OsSql
         /// Connection management type.
         /// </summary>
         public OsSqlTypes.ConnectionManagementType CMT = OsSqlTypes.ConnectionManagementType.Global;
-        /// <summary>
-        /// Connections (threads) limit for multiple connection management type.
-        /// </summary>
-        public int PoolingLimit = 3;
         /// <summary>
         /// Constructs a new SQL instance.
         /// </summary>
@@ -634,10 +632,19 @@ namespace OsSql
                 SslMode = MySqlSslMode.None
             }, ConnectionDetails.ToString(), cmt);
 #endif
+        private OsSqlTypes.Table update_db_table = null;
         private void UpdateDB(OsSqlTypes.Table table)
         {
-            if (Connection.Database != table.DBName && !string.IsNullOrEmpty(table.DBName))
-                Connection.ChangeDatabase(table.DBName);
+            switch (CMT)
+            {
+                case OsSqlTypes.ConnectionManagementType.Global:
+                    if (Connection.Database != table.DBName && !string.IsNullOrEmpty(table.DBName))
+                        Connection.ChangeDatabase(table.DBName);
+                    break;
+                case OsSqlTypes.ConnectionManagementType.Single:
+                    update_db_table = table;
+                    break;
+            }
         }
         /// <summary>
         /// Creates a direct connection for the purpose of reading and writing to the database.
@@ -653,9 +660,6 @@ namespace OsSql
                         Connection.Open();
                         OsSqlDebugger.Message("Connected succesfully to database: " + Connection.Database);
                         break;
-                    //case OsSqlTypes.ConnectionManagementType.Pool:
-                        //Connection.State = ConnectionState.
-                        //break;
                 }
                 return true;
             }
@@ -665,13 +669,42 @@ namespace OsSql
             }
             return false;
         }
+        private MySqlConnection OpenConnectionInstance()
+        {
+            switch (CMT)
+            {
+                case OsSqlTypes.ConnectionManagementType.Global:
+                    return Connection;
+                case OsSqlTypes.ConnectionManagementType.Single:
+                    var conn = new MySqlConnection(ConnectionString);
+                    conn.Open();
+                    if (update_db_table != null && conn.Database != update_db_table.DBName && !string.IsNullOrEmpty(update_db_table.DBName))
+                    {
+                        conn.ChangeDatabase(update_db_table.DBName);
+                        update_db_table = null;
+                    }
+                    return conn;
+            }
+            return null;
+        }
+        private void CloseConnectionInstance(MySqlConnection conn)
+        {
+            if (CMT == OsSqlTypes.ConnectionManagementType.Single)
+            {
+                conn.Close();
+                conn.Dispose();
+            }
+        }
         /// <summary>
         /// Closes the connection to the database.
         /// </summary>
         public void Disconnect()
         {
-            Connection.Close();
-            Connection.Dispose();
+            if (CMT == OsSqlTypes.ConnectionManagementType.Single)
+                return;
+            if (Connection.State == ConnectionState.Open)
+                Connection?.Close();
+            Connection?.Dispose();
         }
         /// <summary>
         /// Reconnects to the database, if needed.
@@ -679,9 +712,11 @@ namespace OsSql
         /// <returns>True if reconnected, false if already connected.</returns>
         public bool RefreshConnection()
         {
+            if (CMT == OsSqlTypes.ConnectionManagementType.Single)
+                return false;
             if (Connection.State != ConnectionState.Open || Connection.IsPasswordExpired)
             {
-                Connection.Open();
+                Connection?.Open();
                 OsSqlDebugger.Message("Reconnected succesfully to database: " + Connection.Database);
                 return true;
             }
@@ -694,7 +729,8 @@ namespace OsSql
         /// <param name="parameters">Parameters to pass with the query.</param>
         public void Query(string query, params OsSqlTypes.Parameter[] parameters)
         {
-            using (var cmd = new MySqlCommand(query, Connection))
+            var conn = OpenConnectionInstance();
+            using (var cmd = new MySqlCommand(query, conn))
             {
                 foreach (var p in parameters)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
@@ -702,6 +738,7 @@ namespace OsSql
                 OsSqlDebugger.Query(cmd);
                 cmd.ExecuteNonQuery();
                 cmd.Dispose();
+                CloseConnectionInstance(conn);
             }
         }
         /// <summary>
@@ -724,7 +761,8 @@ namespace OsSql
         {
             var ret = new List<Dictionary<string, object>>();
             var query = "SELECT " + key + " FROM " + table.ToString() + Condition(condition);
-            using (var cmd = new MySqlCommand(query, Connection))
+            var conn = OpenConnectionInstance();
+            using (var cmd = new MySqlCommand(query, conn))
             {
                 foreach (var p in conditionparams)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
@@ -741,6 +779,7 @@ namespace OsSql
                     }
                     rdr.Close();
                 }
+                CloseConnectionInstance(conn);
             }
             return ret;
         }
@@ -767,7 +806,8 @@ namespace OsSql
         /// <returns>The new DataTable.</returns>
         public DataTable Read(string table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            using (var cmd = new MySqlCommand("SELECT " + key + " FROM " + table.ToString() + Condition(condition), Connection))
+            var conn = OpenConnectionInstance();
+            using (var cmd = new MySqlCommand("SELECT " + key + " FROM " + table.ToString() + Condition(condition), conn))
             {
                 foreach (var p in conditionparams)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
@@ -776,7 +816,9 @@ namespace OsSql
                 var da = new MySqlDataAdapter(cmd);
                 var ds = new DataSet();
                 da.Fill(ds, table);
-                return ds.Tables[table];
+                var rs = ds.Tables[table];
+                CloseConnectionInstance(conn);
+                return rs;
             }
         }
         /// <summary>
@@ -803,7 +845,8 @@ namespace OsSql
         /// <returns>The new DataTable.</returns>
         public DataTable Read(ref DataSet ds, string table, string condition = "", string key = "*", params OsSqlTypes.Parameter[] conditionparams)
         {
-            using (var cmd = new MySqlCommand("SELECT " + key + " FROM " + table.ToString() + Condition(condition), Connection))
+            var conn = OpenConnectionInstance();
+            using (var cmd = new MySqlCommand("SELECT " + key + " FROM " + table.ToString() + Condition(condition), conn))
             {
                 foreach (var p in conditionparams)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
@@ -811,7 +854,9 @@ namespace OsSql
                 OsSqlDebugger.Query(cmd);
                 var da = new MySqlDataAdapter(cmd);
                 da.Fill(ds, table);
-                return ds.Tables[table];
+                var rs = ds.Tables[table];
+                CloseConnectionInstance(conn);
+                return rs;
             }
         }
         /// <summary>
@@ -865,13 +910,16 @@ namespace OsSql
         /// <returns>The count.</returns>
         public int Count(string table, string condition = "", params OsSqlTypes.Parameter[] conditionparams)
         {
-            using (var cmd = new MySqlCommand("SELECT COUNT(*) FROM " + table.ToString() + Condition(condition), Connection))
+            var conn = OpenConnectionInstance();
+            using (var cmd = new MySqlCommand("SELECT COUNT(*) FROM " + table.ToString() + Condition(condition), conn))
             {
                 foreach (var p in conditionparams)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
                 cmd.Prepare();
                 OsSqlDebugger.Query(cmd);
-                return Convert.ToInt32(cmd.ExecuteScalar());
+                var rs = Convert.ToInt32(cmd.ExecuteScalar());
+                CloseConnectionInstance(conn);
+                return rs;
             }
         }
         /// <summary>
@@ -904,13 +952,16 @@ namespace OsSql
                 if (parameters[i].Func)
                     execQuery += "@" + parameters[i].Key + (i == parameters.Length - 1 ? "" : ",");
             execQuery += "); SELECT last_insert_id()";
-            using (var cmd = new MySqlCommand(execQuery, Connection))
+            var conn = OpenConnectionInstance();
+            using (var cmd = new MySqlCommand(execQuery, conn))
             {
                 foreach (var p in parameters)
                     cmd.Parameters.AddWithValue(p.Key, p.Value);
                 cmd.Prepare();
                 OsSqlDebugger.Query(cmd);
-                return Convert.ToInt32(cmd.ExecuteScalar());
+                var rs = Convert.ToInt32(cmd.ExecuteScalar());
+                CloseConnectionInstance(conn);
+                return rs;
             }
         }
         /// <summary>
@@ -950,9 +1001,14 @@ namespace OsSql
         /// <returns>True if the column exists, false otherwise.</returns>
         public bool IsColumnExists(OsSqlTypes.Table table, string column)
         {
+            var conn = OpenConnectionInstance();
             using (var cmd = new MySqlCommand("SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = '" + (string.IsNullOrEmpty(table.DBName) ? ConnectionDetails.Database : table.DBName) +
-            "' AND TABLE_NAME = '" + table.Name + "' AND COLUMN_NAME = '" + column + "'", Connection))
-                return cmd.ExecuteScalar() != null;
+            "' AND TABLE_NAME = '" + table.Name + "' AND COLUMN_NAME = '" + column + "'", conn))
+            {
+                var rs = cmd.ExecuteScalar() != null;
+                CloseConnectionInstance(conn);
+                return rs;
+            }
         }
         /// <summary>
         /// Adds a new column to a table.
@@ -984,7 +1040,8 @@ namespace OsSql
         public void UpdateColumns(OsSqlTypes.Table table, bool delete = false)
         {
             var TColumns = new List<string>();
-            using (var command = Connection.CreateCommand())
+            var conn = OpenConnectionInstance();
+            using (var command = conn.CreateCommand())
             {
                 command.CommandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '" + (string.IsNullOrEmpty(table.DBName) ? ConnectionDetails.Database : table.DBName) + "' AND TABLE_NAME = N'" + table.Name + "'";
                 using (var reader = command.ExecuteReader())
@@ -993,6 +1050,7 @@ namespace OsSql
                         TColumns.Add(reader.GetString(3));
                     reader.Close();
                 }
+                CloseConnectionInstance(conn);
             }
             foreach (var c in table.Columns)
             {
