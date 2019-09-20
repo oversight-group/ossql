@@ -636,8 +636,11 @@ namespace OsSql
 #endif
         private void UpdateDB(OsSqlTypes.Table table)
         {
-            if (Connection.Database != table.DBName)
+            Console.WriteLine("cdb: " + Connection.Database);
+            Console.WriteLine("tdb: " + table.DBName);
+            if (Connection.Database != table.DBName && !string.IsNullOrEmpty(table.DBName))
                 Connection.ChangeDatabase(table.DBName);
+            Console.WriteLine("set");
         }
         /// <summary>
         /// Creates a direct connection for the purpose of reading and writing to the database.
