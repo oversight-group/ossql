@@ -607,7 +607,6 @@ namespace OsSql
         /// <param name="port">Port for server connection.</param>
         /// <param name="cmt">Connection management type.</param>
         public SQL(string server, string database, string uid, string passwd, ushort port = 3306, OsSqlTypes.ConnectionManagementType cmt = OsSqlTypes.ConnectionManagementType.Global)
-#if NETFRAMEWORK
         {
             ConnectionDetails = new MySqlConnectionStringBuilder()
             {
@@ -621,17 +620,6 @@ namespace OsSql
             ConnectionString = ConnectionDetails.ToString();
             CMT = cmt;
         }
-#elif NETCOREAPP
-            => (ConnectionDetails, ConnectionString, CMT) = (new MySqlConnectionStringBuilder()
-            {
-                Server = server,
-                Database = database,
-                UserID = uid,
-                Password = passwd,
-                Port = port,
-                SslMode = MySqlSslMode.None
-            }, ConnectionDetails.ToString(), cmt);
-#endif
         private OsSqlTypes.Table update_db_table = null;
         private void UpdateDB(OsSqlTypes.Table table)
         {
