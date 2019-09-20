@@ -636,11 +636,8 @@ namespace OsSql
 #endif
         private void UpdateDB(OsSqlTypes.Table table)
         {
-            Console.WriteLine("cdb: " + Connection.Database);
-            Console.WriteLine("tdb: " + table.DBName);
             if (Connection.Database != table.DBName && !string.IsNullOrEmpty(table.DBName))
                 Connection.ChangeDatabase(table.DBName);
-            Console.WriteLine("set");
         }
         /// <summary>
         /// Creates a direct connection for the purpose of reading and writing to the database.
@@ -923,9 +920,7 @@ namespace OsSql
         /// <param name="parameters">List of keys and values to insert. Only parameters with <c>function</c> set to <c>true</c> will be inserted.</param>
         public int Insert(OsSqlTypes.Table table, params OsSqlTypes.Parameter[] parameters)
         {
-            Console.WriteLine(table.ToString());
             UpdateDB(table);
-            Console.WriteLine("B");
             return Insert(table.ToString(), parameters);
         }
         /// <summary>
