@@ -18,7 +18,6 @@ C:\Users\Liran\git\ossql\OsSql\obj\Release\netcoreapp2.1\OsSql.pdb
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Release\netcoreapp2.1\OsSql.deps.json
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Release\netcoreapp2.1\OsSql.dll
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Release\netcoreapp2.1\OsSql.pdb
-C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\netcoreapp2.1\OsSql.csprojAssemblyReference.cache
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\netcoreapp2.1\OsSql.csproj.CoreCompileInputs.cache
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\netcoreapp2.1\OsSql.AssemblyInfoInputs.cache
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\netcoreapp2.1\OsSql.AssemblyInfo.cs

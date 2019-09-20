@@ -6,6 +6,8 @@
     <Copyright>Oversight</Copyright>
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryUrl>https://github.com/oversight-group/ossql</RepositoryUrl>
+    <Version>1.1.0</Version>
+    <Authors>Oversight</Authors>
   </PropertyGroup>
 
   <ItemGroup>

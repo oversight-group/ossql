@@ -314,6 +314,24 @@ namespace OsSql
             TimeSpanTicks
         };
         /// <summary>
+        /// Type of connection management.
+        /// </summary>
+        public enum ConnectionManagementType
+        {
+            /// <summary>
+            /// One single connection for all request.
+            /// </summary>
+            Global,
+            /// <summary>
+            /// One single connection for each request.
+            /// </summary>
+            PerRequest,
+            /// <summary>
+            /// Multiple connections managed with thread pool.
+            /// </summary>
+            Pool
+        }
+        /// <summary>
         /// Table class handles a single table in a structure.
         /// </summary>
         public class Table
@@ -574,6 +592,14 @@ namespace OsSql
         /// </summary>
         public string ConnectionString = null;
         /// <summary>
+        /// Connection management type.
+        /// </summary>
+        public OsSqlTypes.ConnectionManagementType CMT = OsSqlTypes.ConnectionManagementType.Global;
+        /// <summary>
+        /// Connections (threads) limit for multiple connection management type.
+        /// </summary>
+        public int PoolingLimit = 3;
+        /// <summary>
         /// Constructs a new SQL instance.
         /// </summary>
         /// <param name="server">The server IP address or host name.</param>
@@ -581,7 +607,9 @@ namespace OsSql
         /// <param name="uid">The login username.</param>
         /// <param name="passwd">The login password</param>
         /// <param name="port">Port for server connection.</param>
-        public SQL(string server, string database, string uid, string passwd, ushort port = 3306)
+        /// <param name="cmt">Connection management type.</param>
+        public SQL(string server, string database, string uid, string passwd, ushort port = 3306, OsSqlTypes.ConnectionManagementType cmt = OsSqlTypes.ConnectionManagementType.Global)
+#if NETFRAMEWORK
         {
             ConnectionDetails = new MySqlConnectionStringBuilder()
             {
@@ -593,7 +621,19 @@ namespace OsSql
                 SslMode = MySqlSslMode.None
             };
             ConnectionString = ConnectionDetails.ToString();
+            CMT = cmt;
         }
+#elif NETCOREAPP
+            => (ConnectionDetails, ConnectionString, CMT) = (new MySqlConnectionStringBuilder()
+            {
+                Server = server,
+                Database = database,
+                UserID = uid,
+                Password = passwd,
+                Port = port,
+                SslMode = MySqlSslMode.None
+            }, ConnectionDetails.ToString(), cmt);
+#endif
         private void UpdateDB(OsSqlTypes.Table table)
         {
             if (Connection.Database != table.DBName)
@@ -606,9 +646,17 @@ namespace OsSql
         {
             try
             {
-                Connection = new MySqlConnection(ConnectionString);
-                Connection.Open();
-                OsSqlDebugger.Message("Connected succesfully to database: " + Connection.Database);
+                switch (CMT)
+                {
+                    case OsSqlTypes.ConnectionManagementType.Global:
+                        Connection = new MySqlConnection(ConnectionString);
+                        Connection.Open();
+                        OsSqlDebugger.Message("Connected succesfully to database: " + Connection.Database);
+                        break;
+                    //case OsSqlTypes.ConnectionManagementType.Pool:
+                        //Connection.State = ConnectionState.
+                        //break;
+                }
                 return true;
             }
             catch (MySqlException ex)
@@ -872,7 +920,9 @@ namespace OsSql
         /// <param name="parameters">List of keys and values to insert. Only parameters with <c>function</c> set to <c>true</c> will be inserted.</param>
         public int Insert(OsSqlTypes.Table table, params OsSqlTypes.Parameter[] parameters)
         {
+            Console.WriteLine(table.ToString());
             UpdateDB(table);
+            Console.WriteLine("B");
             return Insert(table.ToString(), parameters);
         }
         /// <summary>
