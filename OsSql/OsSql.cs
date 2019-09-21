@@ -1481,7 +1481,7 @@ namespace OsSql
         /// <param name="datetime">DateTime object.</param>
         /// <returns>Returns long value that represents a unix time.</returns>
         internal static long UnixTimeFromDateTime(DateTime datetime) =>
-            (long)Math.Truncate((datetime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1))).TotalSeconds);
+            (long)Math.Truncate(datetime.ToUniversalTime().Subtract(new DateTime(1970, 1, 1)).TotalSeconds);
         /// <summary>
         /// Converts a unix time to a DateTime object.
         /// </summary>
