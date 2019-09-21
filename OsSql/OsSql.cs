@@ -305,13 +305,9 @@ namespace OsSql
             /// </summary>
             Element,
             /// <summary>
-            /// A Timespan, saved as int (seconds)
-            /// </summary>
-            TimeSpan,
-            /// <summary>
             /// A Timespan, saved as long (ticks)
             /// </summary>
-            TimeSpanTicks
+            TimeSpan
         };
         /// <summary>
         /// Type of connection management.
@@ -1320,14 +1316,6 @@ namespace OsSql
                         {
                             success = true;
                             if (save)
-                                return ((TimeSpan)content).Seconds;
-                            else
-                                return TimeSpan.FromSeconds(Convert.ToDouble(content));
-                        }
-                    case OsSqlTypes.ColumnType.TimeSpanTicks:
-                        {
-                            success = true;
-                            if (save)
                                 return ((TimeSpan)content).Ticks;
                             else
                                 return new TimeSpan(Convert.ToInt64(content));
@@ -1389,7 +1377,6 @@ namespace OsSql
                 case OsSqlTypes.ColumnType.Enum:
                 case OsSqlTypes.ColumnType.DateTime:
                 case OsSqlTypes.ColumnType.TimeSpan:
-                case OsSqlTypes.ColumnType.TimeSpanTicks:
                     return "BIGINT";
                 case OsSqlTypes.ColumnType.Object:
                     return "MEDIUMTEXT";

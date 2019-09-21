@@ -23,3 +23,4 @@ C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Re
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\netcoreapp2.1\OsSql.AssemblyInfo.cs
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\netcoreapp2.1\OsSql.dll
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\netcoreapp2.1\OsSql.pdb
+C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\netcoreapp2.1\OsSql.csprojAssemblyReference.cache

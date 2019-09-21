@@ -31,3 +31,4 @@ C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Re
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.csproj.CopyComplete
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.dll
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.pdb
+C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.csprojAssemblyReference.cache
