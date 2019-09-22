@@ -588,7 +588,7 @@ namespace OsSql
         /// <summary>
         /// Represents the connection string.
         /// </summary>
-        public string ConnectionString = null;
+        public string ConnectionString => ConnectionDetails.ToString();
         /// <summary>
         /// Connection management type.
         /// </summary>
@@ -613,7 +613,6 @@ namespace OsSql
                 Port = port,
                 SslMode = MySqlSslMode.None
             };
-            ConnectionString = ConnectionDetails.ToString();
             CMT = cmt;
         }
         private OsSqlTypes.Table update_db_table = null;
