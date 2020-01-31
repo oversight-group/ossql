@@ -697,7 +697,7 @@ namespace OsSql
         {
             if (CMT == OsSqlTypes.ConnectionManagementType.Single)
                 return false;
-            if (Connection.State != ConnectionState.Open || Connection.IsPasswordExpired)
+            if (Connection.State != ConnectionState.Open || Connection.IsPasswordExpired || !Connection.Ping())
             {
                 Connection?.Open();
                 OsSqlDebugger.Message("Reconnected succesfully to database: " + Connection.Database);
@@ -712,6 +712,7 @@ namespace OsSql
         /// <param name="parameters">Parameters to pass with the query.</param>
         public void Query(string query, params OsSqlTypes.Parameter[] parameters)
         {
+            RefreshConnection();
             var conn = OpenConnectionInstance();
             using (var cmd = new MySqlCommand(query, conn))
             {

@@ -22,9 +22,11 @@ C:\Users\Liran\git\ossql\OsSql\obj\Release\net452\OsSql.dll
 C:\Users\Liran\git\ossql\OsSql\obj\Release\net452\OsSql.pdb
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Release\net452\OsSql.dll
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Release\net452\OsSql.pdb
+C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Release\net452\BouncyCastle.Crypto.dll
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Release\net452\Google.Protobuf.dll
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Release\net452\MySql.Data.dll
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Release\net452\Newtonsoft.Json.dll
+C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Release\net452\Renci.SshNet.dll
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.csproj.CoreCompileInputs.cache
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.AssemblyInfoInputs.cache
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.AssemblyInfo.cs
@@ -32,5 +34,3 @@ C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Re
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.dll
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.pdb
 C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\obj\Release\net452\OsSql.csprojAssemblyReference.cache
-C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Release\net452\BouncyCastle.Crypto.dll
-C:\Users\Amit\Dropbox (Personal)\עמית\פרויקטים\C#\OsSql\OsSql\bin\Release\net452\Renci.SshNet.dll
